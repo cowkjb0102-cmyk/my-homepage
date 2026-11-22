@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>김남진 | 자기소개</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1EE; --ink:#1C2A28; --muted:#566562; --line:#C9D3CF; --accent:#2F4BE0; --chip:#DDE5E1;
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#141C1B;--ink:#E6EEEB;--muted:#9AABA6;--line:#2C3A38;--accent:#8EA2FF;--chip:#1F2B29;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#141C1B;--ink:#E6EEEB;--muted:#9AABA6;--line:#2C3A38;--accent:#8EA2FF;--chip:#1F2B29;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.75 "Noto Sans KR",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:12vh 24px 80px}
+h1{font:700 clamp(56px,16vw,120px)/1 "Gowun Batang",serif;letter-spacing:-.03em;margin:0 0 28px}
+.lead{font:400 clamp(20px,3.4vw,26px)/1.6 "Gowun Batang",serif;max-width:30em;margin:0 0 72px}
+section{display:grid;grid-template-columns:120px 1fr;gap:8px 32px;padding:28px 0;border-top:1px solid var(--line)}
+h2{font:500 15px/1.75 "Noto Sans KR",sans-serif;color:var(--muted);margin:0}
+section p{margin:0 0 12px;max-width:34em}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+li{background:var(--chip);padding:2px 14px;border-radius:999px;font-size:15px}
+a{color:var(--accent);text-underline-offset:4px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 20px}
+dt{color:var(--muted)} dd{margin:0}
+@media (max-width:560px){section{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>김남진</h1>
+  <p class="lead">인생 2막을 준비하는 50대입니다. AI와 함께 이것저것 새로 해보는 중이에요.</p>
+
+  <section>
+    <h2>소개</h2>
+    <div>
+      <p>50대가 되어 인생의 두 번째 장을 준비하고 있습니다. 무엇을 할지 정해 두기보다, 일단 해보면서 길을 찾아가는 중이에요.</p>
+      <p>AI 덕분에 예전엔 엄두도 못 냈던 일을 하나씩 해볼 수 있게 됐습니다. 이 홈페이지도 그 첫걸음이에요.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>요즘 하는 일</h2>
+    <div>
+      <p>AI에게 묻고, 만들어 보고, 배워 가는 중입니다. 해본 일들은 이 페이지에 차곡차곡 쌓아 갈게요.</p>
+      <ul><li>AI 배우기</li><li>내 홈페이지 만들기</li><li>새로운 도전</li></ul>
+    </div>
+  </section>
+</main>
+</body>
+</html>
