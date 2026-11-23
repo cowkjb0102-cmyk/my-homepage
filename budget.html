@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내 가계부</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1c1f24;--sub:#6b7280;--line:#e5e7eb;--inc:#2563eb;--exp:#e11d48;--pri:#111827;--onpri:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--inc:#60a5fa;--exp:#fb7185;--pri:#eef0f3;--onpri:#111827}}
+:root[data-theme="dark"]{--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--inc:#60a5fa;--exp:#fb7185;--pri:#eef0f3;--onpri:#111827}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 96px}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.nav button{background:none;border:0;color:var(--text);font-size:22px;padding:8px 14px;cursor:pointer}
+.nav h1{font-size:18px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.bal{font-size:28px;font-weight:700;margin:2px 0 12px}
+.row{display:flex;gap:12px}
+.row>div{flex:1}
+.lbl{font-size:12px;color:var(--sub)}
+.inc{color:var(--inc)}.exp{color:var(--exp)}
+h2{font-size:14px;margin:0 0 10px;color:var(--sub);font-weight:600}
+.bar{margin-bottom:10px}
+.bar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.bar .b{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar .b i{display:block;height:100%;background:var(--exp);border-radius:4px}
+.day{font-size:12px;color:var(--sub);margin:14px 4px 6px}
+.item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:6px}
+.item .m{flex:1;min-width:0}
+.item .m b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .m span{font-size:12px;color:var(--sub)}
+.item .a{font-weight:600;font-size:15px}
+.item .x{background:none;border:0;color:var(--sub);font-size:18px;padding:4px 6px;cursor:pointer}
+.empty{text-align:center;color:var(--sub);padding:24px 0;font-size:14px}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:28px;border:0;background:var(--pri);color:var(--onpri);font-size:30px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:5}
+.ov.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;color:var(--sub);padding:9px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.sheet input,.sheet select{width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
+.sheet .go{width:100%;padding:14px;border:0;border-radius:12px;background:var(--pri);color:var(--onpri);font-size:16px;font-weight:700;cursor:pointer}
+.cancel{width:100%;background:none;border:0;color:var(--sub);padding:10px;margin-top:4px;font-size:14px;cursor:pointer}
+.menu{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid var(--line)}
+.menu ul{list-style:none;max-width:560px;margin:0 auto;padding:10px 16px;display:flex;gap:6px}
+.menu a{display:block;padding:6px 14px;border-radius:999px;color:var(--text);text-decoration:none;font-size:15px}
+.menu a:hover{background:var(--line)}
+.menu a[aria-current]{background:var(--card);border:1px solid var(--line);font-weight:600}
+</style>
+</head>
+<body>
+<nav class="menu" aria-label="메뉴"><ul><li><a href="index.html">소개</a></li><li><a href="schedule.html">일정표</a></li><li><a href="budget.html" aria-current="page">가계부</a></li></ul></nav>
+<div class="wrap">
+  <div class="nav"><button id="prev" aria-label="이전 달">‹</button><h1 id="ttl"></h1><button id="next" aria-label="다음 달">›</button></div>
+  <div class="card">
+    <div class="lbl">이번 달 잔액</div>
+    <div class="bal" id="bal"></div>
+    <div class="row"><div><div class="lbl">수입</div><div class="inc" id="si"></div></div><div><div class="lbl">지출</div><div class="exp" id="se"></div></div></div>
+  </div>
+  <div class="card" id="catcard"><h2>카테고리별 지출</h2><div id="cats"></div></div>
+  <div id="list"></div>
+</div>
+<button class="fab" id="fab" aria-label="내역 추가">+</button>
+<div class="ov" id="ov">
+  <div class="sheet">
+    <div class="seg"><button id="tE" class="on">지출</button><button id="tI">수입</button></div>
+    <input type="number" id="amt" inputmode="numeric" placeholder="금액 (원)">
+    <select id="cat"></select>
+    <select id="sub"></select>
+    <input type="text" id="memo" placeholder="내용 (선택)">
+    <input type="date" id="date">
+    <button class="go" id="save">저장</button>
+    <button class="cancel" id="cx">취소</button>
+  </div>
+</div>
+<script>
+var CATS={e:["식비","교통","쇼핑","주거/통신","의료","문화/여가","기타"],i:["급여","용돈","기타수입"]};
+var SUB={"식비":["밥값","커피값","술값","기타"]};
+var KEY="budget_items_v1",items=[],type="e",d=new Date(),ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+try{items=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){items=[]}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function won(n){return n.toLocaleString("ko-KR")+"원"}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function today(){var t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
+function shift(n){var p=ym.split("-"),x=new Date(+p[0],+p[1]-1+n,1);ym=x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0");render()}
+function render(){
+  var p=ym.split("-");$("ttl").textContent=p[0]+"년 "+(+p[1])+"월";
+  var m=items.filter(function(x){return x.date.slice(0,7)===ym}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
+  var inc=0,exp=0,by={},sb={};
+  m.forEach(function(x){if(x.type==="i")inc+=x.amt;else{exp+=x.amt;by[x.cat]=(by[x.cat]||0)+x.amt;if(x.sub)sb[x.cat+"|"+x.sub]=(sb[x.cat+"|"+x.sub]||0)+x.amt}});
+  $("bal").textContent=won(inc-exp);$("si").textContent=won(inc);$("se").textContent=won(exp);
+  var keys=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
+  $("catcard").style.display=keys.length?"block":"none";
+  $("cats").innerHTML=keys.map(function(k){var pc=Math.round(by[k]/exp*100);return '<div class="bar"><div class="t"><span>'+esc(k)+' · '+pc+'%</span><span>'+won(by[k])+'</span></div><div class="b"><i style="width:'+pc+'%"></i></div>'+((SUB[k]||[]).filter(function(s){return sb[k+"|"+s]}).map(function(s){return '<div class="t lbl" style="margin:4px 0 0 10px"><span>└ '+esc(s)+'</span><span>'+won(sb[k+"|"+s])+'</span></div>'}).join(""))+'</div>'}).join("");
+  var h="",last="";
+  m.forEach(function(x){
+    if(x.date!==last){last=x.date;var dt=new Date(x.date+"T00:00:00");h+='<div class="day">'+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+"일월화수목금토"[dt.getDay()]+')</div>'}
+    h+='<div class="item"><div class="m"><b>'+esc(x.memo||x.cat)+'</b><span>'+esc(x.cat)+(x.sub?' · '+esc(x.sub):'')+'</span></div><div class="a '+(x.type==="i"?"inc":"exp")+'">'+(x.type==="i"?"+":"-")+won(x.amt)+'</div><button class="x" data-id="'+x.id+'" aria-label="삭제">✕</button></div>'
+  });
+  $("list").innerHTML=h||'<div class="empty">아직 내역이 없어요.<br>아래 + 버튼으로 추가해보세요.</div>';
+}
+function setType(t){type=t;$("tE").className=t==="e"?"on":"";$("tI").className=t==="i"?"on":"";
+  $("cat").innerHTML=CATS[t].map(function(c){return "<option>"+c+"</option>"}).join("");updSub()}
+function updSub(){var s=SUB[$("cat").value];$("sub").style.display=s?"block":"none";$("sub").innerHTML=(s||[]).map(function(c){return "<option>"+c+"</option>"}).join("")}
+$("cat").onchange=updSub;
+$("prev").onclick=function(){shift(-1)};$("next").onclick=function(){shift(1)};
+$("tE").onclick=function(){setType("e")};$("tI").onclick=function(){setType("i")};
+$("fab").onclick=function(){setType("e");$("amt").value="";$("memo").value="";$("date").value=today();$("ov").classList.add("on");$("amt").focus()};
+function close(){$("ov").classList.remove("on")}
+$("cx").onclick=close;$("ov").onclick=function(e){if(e.target===$("ov"))close()};
+$("save").onclick=function(){
+  var a=Math.round(+$("amt").value);
+  if(!a||a<=0){$("amt").focus();return}
+  var dt=$("date").value||today();
+  items.push({id:Date.now(),date:dt,type:type,cat:$("cat").value,sub:SUB[$("cat").value]?$("sub").value:"",memo:$("memo").value.trim(),amt:a});
+  persist();ym=dt.slice(0,7);close();render();
+};
+$("list").onclick=function(e){
+  var id=e.target.getAttribute&&e.target.getAttribute("data-id");
+  if(id&&confirm("이 내역을 삭제할까요?")){items=items.filter(function(x){return String(x.id)!==id});persist();render()}
+};
+render();
+</script>
+</body>
+</html>
