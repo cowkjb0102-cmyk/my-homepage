@@ -30,9 +30,19 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 .who{display:flex;align-items:center;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
 .who b{font:700 20px/1 "Gowun Batang",serif}
 .who a{font-size:15px}
-.photo{margin:0;position:relative}
-.photo img{display:block;width:100%;height:auto;max-width:440px;margin-left:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 100%;border-radius:999px 999px 28px 28px;box-shadow:0 30px 60px -30px rgba(43,33,28,.45)}
-.photo::before{content:"";position:absolute;inset:-14px -14px auto auto;width:min(100%,440px);aspect-ratio:4/5;border:1px solid var(--line);border-radius:999px 999px 28px 28px;z-index:-1}
+.photo{margin:0;position:relative;max-width:440px;margin-left:auto;width:100%}
+.photo::before{content:"";position:absolute;inset:-14px -14px auto auto;width:100%;aspect-ratio:4/5;border:1px solid var(--line);border-radius:999px 999px 28px 28px;z-index:-1}
+.frame{position:relative;width:100%;aspect-ratio:4/5;border-radius:999px 999px 28px 28px;overflow:hidden;background:var(--chip);box-shadow:0 30px 60px -30px rgba(43,33,28,.45);touch-action:pan-y}
+.slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,50% 50%);opacity:0;transition:opacity 1s ease}
+.slide.on{opacity:1}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px}
+.ctrl button{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:var(--paper);color:var(--ink);font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.ctrl button:hover{border-color:var(--accent)}
+.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dots{display:flex;gap:6px;margin:0 8px}
+.dots button{width:8px;height:8px;min-width:0;padding:0;border:0;border-radius:4px;background:var(--line);transition:width .3s,background .3s}
+.dots button[aria-current="true"]{width:22px;background:var(--accent)}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
 
 .body{background:var(--paper);border-top:1px solid var(--line)}
 .body-in{max-width:1080px;margin:0 auto;padding:24px 20px 96px}
@@ -52,7 +62,9 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
 @media (max-width:820px){
   .hero{grid-template-columns:1fr;gap:36px;padding:32px 16px 56px}
   .photo{order:-1}
-  .photo img{max-width:340px;margin:0 auto;aspect-ratio:1/1;object-position:50% 88%;border-radius:999px 999px 24px 24px}
+  .photo{max-width:360px;margin:0 auto}
+  .frame{aspect-ratio:1/1;border-radius:999px 999px 24px 24px}
+  .slide.first{object-position:50% 88%}
   .photo::before{display:none}
   .body-in{padding:8px 16px 72px}
   section{grid-template-columns:1fr;padding:32px 0}
@@ -82,7 +94,25 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
       <p class="lead">인생 2막을 준비하는 50대입니다. AI와 함께 이것저것 새로 해보는 중이에요.</p>
       <div class="who"><b>김남진</b><a href="mailto:cowkjb01@daum.net">cowkjb01@daum.net</a></div>
     </div>
-    <figure class="photo"><img src="photo.jpg" alt="가족과 함께 잔디밭에서 찍은 김남진 사진" width="651" height="869"></figure>
+    <figure class="photo" role="region" aria-roledescription="슬라이드쇼" aria-label="김남진 사진">
+      <div class="frame" id="frame">
+        <img class="slide first on" src="photo.jpg" alt="가족과 함께 잔디밭에서" style="--pos:50% 100%">
+        <img class="slide" src="photos/01.jpg" alt="여행지에서 두 사람" style="--pos:50% 55%" loading="lazy">
+        <img class="slide" src="photos/02.jpg" alt="큰 돌비석 앞에서" style="--pos:50% 80%" loading="lazy">
+        <img class="slide" src="photos/03.jpg" alt="김남진 얼굴 사진" style="--pos:50% 40%" loading="lazy">
+        <img class="slide" src="photos/04.jpg" alt="호숫가 공원에서" style="--pos:50% 70%" loading="lazy">
+        <img class="slide" src="photos/05.jpg" alt="야경을 배경으로 두 사람" style="--pos:38% 70%" loading="lazy">
+        <img class="slide" src="photos/06.jpg" alt="모자를 쓴 두 아이와 함께" style="--pos:74% 45%" loading="lazy">
+        <img class="slide" src="photos/07.jpg" alt="대학교 학위수여식에서" style="--pos:52% 65%" loading="lazy">
+        <img class="slide" src="photos/08.jpg" alt="함께 찍은 셀카" style="--pos:55% 60%" loading="lazy">
+      </div>
+      <div class="ctrl">
+        <button type="button" id="sPrev" aria-label="이전 사진">‹</button>
+        <div class="dots" id="dots"></div>
+        <button type="button" id="sPlay" aria-label="자동 넘김 멈추기">❚❚</button>
+        <button type="button" id="sNext" aria-label="다음 사진">›</button>
+      </div>
+    </figure>
   </div>
 
   <div class="body"><div class="body-in">
@@ -110,5 +140,34 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
   </div></div>
 </main>
 <script src="menu.js"></script>
+<script>
+// 사진 슬라이드쇼: 4초마다 자동으로 넘어가고, 화살표·점·밀기로도 넘길 수 있어요
+(function(){
+  var slides=[].slice.call(document.querySelectorAll("#frame .slide"));
+  var dots=document.getElementById("dots"), play=document.getElementById("sPlay"), frame=document.getElementById("frame");
+  var i=0, timer=null, playing=!window.matchMedia("(prefers-reduced-motion: reduce)").matches, hover=false;
+  slides.forEach(function(s,k){
+    var b=document.createElement("button"); b.type="button"; b.setAttribute("aria-label",(k+1)+"번째 사진");
+    b.onclick=function(){go(k);restart()}; dots.appendChild(b);
+  });
+  function go(n){
+    i=(n+slides.length)%slides.length;
+    slides.forEach(function(s,k){s.classList.toggle("on",k===i)});
+    [].forEach.call(dots.children,function(d,k){d.setAttribute("aria-current",k===i?"true":"false")});
+  }
+  function restart(){clearInterval(timer);if(playing&&!hover)timer=setInterval(function(){go(i+1)},4000)}
+  function setPlay(p){playing=p;play.textContent=p?"❚❚":"▶";play.setAttribute("aria-label",p?"자동 넘김 멈추기":"자동 넘김 시작");restart()}
+  document.getElementById("sPrev").onclick=function(){go(i-1);restart()};
+  document.getElementById("sNext").onclick=function(){go(i+1);restart()};
+  play.onclick=function(){setPlay(!playing)};
+  frame.addEventListener("mouseenter",function(){hover=true;restart()});
+  frame.addEventListener("mouseleave",function(){hover=false;restart()});
+  var x0=null;
+  frame.addEventListener("touchstart",function(e){x0=e.touches[0].clientX},{passive:true});
+  frame.addEventListener("touchend",function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){go(i+(dx<0?1:-1));restart()}x0=null});
+  document.addEventListener("visibilitychange",function(){if(document.hidden)clearInterval(timer);else restart()});
+  go(0); setPlay(playing);
+})();
+</script>
 </body>
 </html>
