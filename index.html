@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>김남진 | 자기소개</title>
+<title>태영, 태완 | 자기소개</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="menu.css">
@@ -29,7 +29,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 .lead{font:400 clamp(18px,2vw,21px)/1.75 "Gowun Batang",serif;color:var(--muted);max-width:28em;margin:0 0 36px}
 .who{display:flex;align-items:center;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
 .who b{font:700 20px/1 "Gowun Batang",serif}
-.who a{font-size:15px}
+.who a,.who .mail{color:var(--muted);font-size:15px}
 .photo{margin:0;position:relative;max-width:440px;margin-left:auto;width:100%}
 .photo::before{content:"";position:absolute;inset:-14px -14px auto auto;width:100%;aspect-ratio:4/5;border:1px solid var(--line);border-radius:999px 999px 28px 28px;z-index:-1}
 .frame{position:relative;width:100%;aspect-ratio:4/5;border-radius:999px 999px 28px 28px;overflow:hidden;background:var(--chip);box-shadow:0 30px 60px -30px rgba(43,33,28,.45);touch-action:pan-y}
@@ -70,13 +70,12 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
 <body>
 <header class="site-header">
   <div class="sh-in">
-    <a class="sh-logo" href="index.html">김남진<small>NAMJIN KIM</small></a>
+    <a class="sh-logo" href="index.html">태영, 태완<small>TAEYOUNG · TAEWAN</small></a>
     <button class="sh-burger" type="button" aria-expanded="false" aria-controls="sh-nav" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
     <nav id="sh-nav" class="sh-nav" aria-label="메뉴">
       <a href="index.html" aria-current="page">소개</a>
       <a href="schedule.html">일정표</a>
       <a href="budget.html">가계부</a>
-      <a class="sh-pill" href="mailto:cowkjb01@daum.net">연락하기</a>
     </nav>
   </div>
 </header>
@@ -86,15 +85,15 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
     <div>
       <p class="eyebrow">ABOUT ME</p>
       <h1>인생 2막,<br><em>일단 해보며</em><br>길을 찾는 중입니다</h1>
-      <p class="lead">인생 2막을 준비하는 50대입니다. AI와 함께 이것저것 새로 해보는 중이에요.</p>
-      <div class="who"><b>김남진</b><a href="mailto:cowkjb01@daum.net">cowkjb01@daum.net</a></div>
+      <p class="lead">인생 2막을 준비하는 50대 중반의 아재입니다. AI와 함께 이것저것 새로 해보는 중이에요.</p>
+      <div class="who"><b>태영, 태완</b><span class="mail">co*****@****.net</span></div>
     </div>
-    <figure class="photo" role="region" aria-roledescription="슬라이드쇼" aria-label="김남진 사진">
+    <figure class="photo" role="region" aria-roledescription="슬라이드쇼" aria-label="태영, 태완 사진">
       <div class="frame" id="frame">
         <img class="slide first on" src="photo.jpg" alt="가족과 함께 잔디밭에서" style="--pos:50% 100%">
         <img class="slide" src="photos/01.jpg" alt="여행지에서 두 사람" style="--pos:50% 55%" loading="lazy">
         <img class="slide" src="photos/02.jpg" alt="큰 돌비석 앞에서" style="--pos:50% 80%" loading="lazy">
-        <img class="slide" src="photos/03.jpg" alt="김남진 얼굴 사진" style="--pos:50% 40%" loading="lazy">
+        <img class="slide" src="photos/03.jpg" alt="태영, 태완 얼굴 사진" style="--pos:50% 40%" loading="lazy">
         <img class="slide" src="photos/04.jpg" alt="호숫가 공원에서" style="--pos:50% 70%" loading="lazy">
         <img class="slide" src="photos/05.jpg" alt="야경을 배경으로 두 사람" style="--pos:38% 70%" loading="lazy">
         <img class="slide" src="photos/06.jpg" alt="모자를 쓴 두 아이와 함께" style="--pos:74% 45%" loading="lazy">
