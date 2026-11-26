@@ -53,3 +53,21 @@ function setup(h){
   show(false);
   if(get("localStorage",KEY_ON)==="1")start();
 }
+
+// 방문자 수: 상단 메뉴에 '오늘 N · 누적 N' 표시
+// 같은 브라우저는 하루에 한 번만 셉니다. 저장소가 아직 연결 안 됐으면 아무것도 안 보여요.
+(function(){
+  var h=document.querySelector(".site-header .sh-in"); if(!h||!window.fetch) return;
+  var d=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul"}).format(new Date());
+  var seen=null; try{seen=localStorage.getItem("visit_day")}catch(e){}
+  var first=seen!==d;
+  fetch("/api/visits",{method:first?"POST":"GET",cache:"no-store"}).then(function(r){return r.json()}).then(function(v){
+    if(!v||!v.enabled) return;
+    if(first){try{localStorage.setItem("visit_day",d)}catch(e){}}
+    var el=document.createElement("div"); el.className="sh-visits";
+    el.setAttribute("aria-label","오늘 방문자 "+v.today+"명, 누적 방문자 "+v.total+"명");
+    var f=function(n){return Number(n).toLocaleString("ko-KR")};
+    el.innerHTML='<span><b>오늘</b> '+f(v.today)+'</span><i aria-hidden="true"></i><span><b>누적</b> '+f(v.total)+'</span>';
+    h.appendChild(el);
+  }).catch(function(){});
+})();
