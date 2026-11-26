@@ -12,10 +12,10 @@
 }
 :root[data-theme="dark"] .site-header{--h-bg:rgba(26,21,18,.88);--h-ink:#F1E9E1;--h-muted:#B3A398;--h-pill:#E8D5C4;--h-onpill:#2B211C;--h-line:rgba(241,233,225,.12);--h-hover:rgba(241,233,225,.08);--h-solid:#1A1512}
 .sh-in{max-width:1080px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.sh-logo{font:700 22px/1 "Gowun Batang",serif;letter-spacing:-.02em;color:var(--h-ink);text-decoration:none}
+.sh-logo{white-space:nowrap;font:700 22px/1 "Gowun Batang",serif;letter-spacing:-.02em;color:var(--h-ink);text-decoration:none}
 .sh-logo small{display:block;font:400 10px/1 "Noto Sans KR",sans-serif;letter-spacing:.18em;color:var(--h-muted);margin-top:5px}
 .sh-nav{display:flex;align-items:center;gap:4px}
-.sh-nav a{color:var(--h-ink);text-decoration:none;font-size:15px;padding:8px 14px;border-radius:999px;transition:background .15s}
+.sh-nav a{white-space:nowrap;color:var(--h-ink);text-decoration:none;font-size:15px;padding:8px 14px;border-radius:999px;transition:background .15s}
 .sh-nav a:hover{background:var(--h-hover)}
 .sh-nav a[aria-current]{font-weight:700}
 .sh-nav a[aria-current]::after{content:"";display:block;height:2px;margin-top:3px;border-radius:1px;background:currentColor}
@@ -40,7 +40,7 @@
 .site-header.open .sh-burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .site-header.open .sh-burger span:nth-child(2){opacity:0}
 .site-header.open .sh-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-@media (max-width:720px){
+@media (max-width:960px){
   .sh-in{height:58px;padding:0 16px}
   .sh-burger{display:block}
   .sh-music{height:38px;padding:0 12px 0 10px;font-size:13px}
@@ -61,3 +61,14 @@
   .sh-visits{height:28px;padding:0 10px;gap:6px;font-size:11.5px}
 }
 @media (max-width:360px){.sh-visits b{display:none}}
+
+/* 좁은 휴대폰: 음악 버튼은 아이콘만, 간격 줄이기 */
+@media (max-width:480px){
+  .sh-in{gap:8px;padding:0 12px}
+  .sh-logo{font-size:19px}
+  .sh-logo small{letter-spacing:.12em}
+  .sh-music{width:38px;padding:0;justify-content:center}
+  .sh-music .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .sh-visits{padding:0 8px;gap:5px}
+  .sh-burger{width:40px}
+}
