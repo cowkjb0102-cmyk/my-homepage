@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>내 일정표</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#1c1f24;--sub:#6b7280;--line:#e5e7eb;--acc:#2563eb;--accbg:#dbe6fd;--sun:#e11d48;--pri:#111827;--onpri:#fff;
+:root{--bg:#f6f7f9;--card:#fff;--text:#1c1f24;--sub:#6b7280;--line:#e5e7eb;--acc:#2563eb;--accbg:#dbe6fd;--sun:#e11d48;--sat:#2563eb;--pri:#111827;--onpri:#fff;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--acc:#60a5fa;--accbg:#1e2b44;--sun:#fb7185;--pri:#eef0f3;--onpri:#111827}}
-:root[data-theme="dark"]{--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--acc:#60a5fa;--accbg:#1e2b44;--sun:#fb7185;--pri:#eef0f3;--onpri:#111827}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--acc:#60a5fa;--accbg:#1e2b44;--sun:#fb7185;--sat:#60a5fa;--pri:#eef0f3;--onpri:#111827}}
+:root[data-theme="dark"]{--bg:#0f1115;--card:#1a1d23;--text:#eef0f3;--sub:#9aa1ad;--line:#2a2e36;--acc:#60a5fa;--accbg:#1e2b44;--sun:#fb7185;--sat:#60a5fa;--pri:#eef0f3;--onpri:#111827}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent}
@@ -21,6 +21,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .wd{text-align:center;font-size:12px;color:var(--sub);padding:4px 0 6px}
 .wd:first-child,.c.sun .n{color:var(--sun)}
+.wd:nth-child(7),.c.sat .n{color:var(--sat)}
 .c{min-height:52px;border:0;background:none;color:var(--text);border-radius:10px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:inherit}
 .c.out{visibility:hidden}
 .c .n{font-size:14px;width:26px;height:26px;line-height:26px;border-radius:13px;text-align:center}
@@ -105,7 +106,7 @@ function render(){
   for(var i=0;i<first;i++)h+='<div class="c out"></div>';
   for(var d=1;d<=days;d++){
     var ds=y+"-"+pad(m+1)+"-"+pad(d),n=byDate(ds).length,wd=(first+d-1)%7;
-    var cls="c"+(wd===0?" sun":"")+(ds===t?" is-today":"")+(ds===sel?" sel":"");
+    var cls="c"+(wd===0?" sun":wd===6?" sat":"")+(ds===t?" is-today":"")+(ds===sel?" sel":"");
     var dots="";for(var k=0;k<Math.min(n,3);k++)dots+="<i></i>";
     h+='<button class="'+cls+'" data-d="'+ds+'" aria-label="'+(m+1)+'월 '+d+'일'+(n?', 일정 '+n+'개':'')+'"><span class="n">'+d+'</span><span class="dots">'+dots+'</span></button>';
   }
