@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>미디어 라이브러리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="menu.css">
+<style>
+:root{
+  --bg:#F7F2EC; --paper:#FFFBF6; --ink:#2B211C; --muted:#7A6A60; --line:#E4D9CE; --accent:#8A5A3C; --chip:#EFE5DA; --pill:#4A3328; --onpill:#FFF8F1; --danger:#B3261E; --tile:#EAE0D5;
+  color-scheme:light; box-sizing:border-box; padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#1A1512;--paper:#221C18;--ink:#F1E9E1;--muted:#B3A398;--line:#3A302A;--accent:#E0B48F;--chip:#2C241F;--pill:#E8D5C4;--onpill:#2B211C;--danger:#F2B8B5;--tile:#2C241F;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#1A1512;--paper:#221C18;--ink:#F1E9E1;--muted:#B3A398;--line:#3A302A;--accent:#E0B48F;--chip:#2C241F;--pill:#E8D5C4;--onpill:#2B211C;--danger:#F2B8B5;--tile:#2C241F;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:80px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 "Noto Sans KR",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 20px 120px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.eyebrow{font-size:13px;letter-spacing:.24em;color:var(--muted);margin:0 0 8px}
+h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02em;margin:0}
+.sum{color:var(--muted);font-size:14px;margin:6px 0 0}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-size:15px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--pill);color:var(--onpill);border-color:var(--pill)}
+.btn.pri:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:default}
+.btn svg{width:18px;height:18px;flex:none}
+.bar{position:sticky;top:64px;z-index:5;background:var(--bg);display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.chip{height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:none;cursor:pointer;font-size:14px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--pill);border-color:var(--pill);color:var(--onpill)}
+.bar select{margin-left:auto;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--paper);padding:0 14px;font-size:14px;max-width:46vw}
+.month{font:700 24px/1.3 "Gowun Batang",serif;margin:34px 0 4px;scroll-margin-top:130px}
+.day{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 8px;font-size:15px;font-weight:500}
+.day span{font-size:13px;font-weight:400;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px}
+.tile{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:6px;overflow:hidden;background:var(--tile);cursor:pointer;display:block;width:100%}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.tile:hover img{transform:scale(1.03)}
+.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tile .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;letter-spacing:.08em}
+.badge{position:absolute;right:6px;bottom:6px;display:flex;align-items:center;gap:3px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:500;padding:2px 7px 2px 5px;border-radius:6px}
+.badge svg{width:12px;height:12px}
+.empty,.msg{text-align:center;color:var(--muted);padding:72px 16px}
+.empty h2{font:700 22px/1.4 "Gowun Batang",serif;color:var(--ink);margin:0 0 8px}
+.empty p{margin:0 0 22px}
+.lockbox{max-width:360px;margin:60px auto;text-align:center}
+.field{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 14px;font-size:16px;margin:12px 0 8px}
+.err{color:var(--danger);font-size:14px;min-height:1.4em;margin:0 0 8px}
+@media (max-width:720px){
+  .wrap{padding:24px 12px 120px}
+  .bar{top:58px}
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+  .tile{border-radius:3px}
+  .month{font-size:21px}
+}
+
+/* 크게 보기 */
+.lb{position:fixed;inset:0;z-index:40;background:#0d0b0a;color:#f4ede6;display:none;flex-direction:column}
+.lb.on{display:flex}
+.lb-top,.lb-bot{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top,0px))}
+.lb-bot{padding-bottom:max(12px,env(safe-area-inset-bottom,0px));justify-content:center}
+.lb-cap{flex:1;min-width:0;font-size:15px}
+.lb-cap small{display:block;color:#b9aca1;font-size:12px}
+.ib{width:44px;height:44px;border-radius:22px;border:0;background:rgba(255,255,255,.1);color:inherit;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;flex:none}
+.ib:hover{background:rgba(255,255,255,.18)}
+.ib svg{width:22px;height:22px}
+.ib.del{color:#ffb4ab}
+.lb-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.lb-stage img,.lb-stage video{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%)}
+.lb-nav.prev{left:12px}.lb-nav.next{right:12px}
+@media (max-width:720px){.lb-nav{display:none}}
+
+/* 올리기 창 */
+.ov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:620px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+@media (min-width:721px){.ov{align-items:center}.sheet{border-radius:20px}}
+.sheet h2{font:700 21px/1.3 "Gowun Batang",serif;margin:0 0 4px}
+.sheet .hint{color:var(--muted);font-size:14px;margin:0 0 14px}
+.pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--line);border-radius:14px;padding:26px 12px;text-align:center;color:var(--muted);cursor:pointer;font-size:14px}
+.pick b{color:var(--ink);font-size:16px}
+.pick.drag{border-color:var(--accent);background:var(--chip)}
+.q{list-style:none;margin:14px 0 0;padding:0}
+.q li{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.q .th{width:56px;height:56px;border-radius:8px;background:var(--tile) center/cover no-repeat;position:relative}
+.q .nm{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q input[type=datetime-local]{height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 8px;font-size:13px;margin-top:4px;max-width:100%}
+.q .st{font-size:12px;color:var(--muted);text-align:right;min-width:56px}
+.q .st.ok{color:var(--accent)}.q .st.no{color:var(--danger)}
+.q .rm{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px}
+.prog{height:3px;background:var(--line);border-radius:2px;margin-top:6px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.acts{display:flex;gap:8px;margin-top:16px}
+.acts .btn{flex:1;justify-content:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="sh-in">
+    <a class="sh-logo" href="index.html">태영, 태완<small>TAEYOUNG · TAEWAN</small></a>
+    <button class="sh-burger" type="button" aria-expanded="false" aria-controls="sh-nav" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+    <nav id="sh-nav" class="sh-nav" aria-label="메뉴">
+      <a href="index.html">소개</a>
+      <a href="schedule.html">일정표</a>
+      <a href="budget.html">가계부</a>
+      <a href="media.html" aria-current="page">미디어 라이브러리</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="top">
+    <div>
+      <p class="eyebrow">MEDIA LIBRARY</p>
+      <h1>미디어 라이브러리</h1>
+      <p class="sum" id="sum">불러오는 중…</p>
+    </div>
+    <button class="btn pri" id="openUp" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>올리기
+    </button>
+  </div>
+
+  <div class="bar" id="bar" hidden>
+    <button class="chip" type="button" data-f="all" aria-pressed="true">전체</button>
+    <button class="chip" type="button" data-f="photo" aria-pressed="false">사진</button>
+    <button class="chip" type="button" data-f="video" aria-pressed="false">동영상</button>
+    <select id="jump" aria-label="날짜로 이동"></select>
+  </div>
+
+  <div id="lib" aria-live="polite"></div>
+</main>
+
+<!-- 크게 보기 -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="크게 보기">
+  <div class="lb-top">
+    <button class="ib" type="button" id="lbClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="lb-cap" id="lbCap"></div>
+    <a class="ib" id="lbDown" aria-label="원본 받기" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg></a>
+    <button class="ib del" type="button" id="lbDel" aria-label="지우기" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+  </div>
+  <div class="lb-stage" id="lbStage">
+    <button class="ib lb-nav prev" type="button" id="lbPrev" aria-label="이전"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+    <button class="ib lb-nav next" type="button" id="lbNext" aria-label="다음"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+  </div>
+  <div class="lb-bot"><span id="lbPos" style="font-size:13px;color:#b9aca1"></span></div>
+</div>
+
+<!-- 올리기 창 -->
+<div class="ov" id="ov">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="upTitle">
+    <h2 id="upTitle">사진·동영상 올리기</h2>
+    <div id="upLogin">
+      <p class="hint">올리기와 지우기는 관리자 비밀번호가 있어야 할 수 있어요.</p>
+      <label class="sr" for="adminPw">관리자 비밀번호</label>
+      <input class="field" id="adminPw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
+      <p class="err" id="loginErr"></p>
+      <div class="acts"><button class="btn" type="button" data-close>닫기</button><button class="btn pri" type="button" id="loginGo">확인</button></div>
+    </div>
+    <div id="upMain" hidden>
+      <p class="hint">찍은 날짜는 사진 정보나 파일 이름에서 자동으로 찾아요. 틀리면 고쳐 주세요.</p>
+      <label class="pick" id="pick">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 8"/></svg>
+        <b>사진·동영상 고르기</b>
+        <span>여러 개를 한 번에 고를 수 있어요 · 한 파일 최대 500MB</span>
+        <input type="file" id="files" accept="image/*,video/*" multiple class="sr">
+      </label>
+      <ul class="q" id="q"></ul>
+      <p class="err" id="upErr"></p>
+      <div class="acts"><button class="btn" type="button" data-close>닫기</button><button class="btn pri" type="button" id="upGo" disabled>올리기</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="menu.js"></script>
+<script type="module">
+const BLOB_CLIENT = "https://esm.sh/@vercel/blob@2.9.0/client";
+const EXIFR = "https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/lite.esm.mjs";
+const $ = (s) => document.querySelector(s);
+const store = {
+  get(s, k) { try { return window[s].getItem(k); } catch { return null; } },
+  set(s, k, v) { try { v == null ? window[s].removeItem(k) : window[s].setItem(k, v); } catch {} },
+};
+const WD = ["일", "월", "화", "수", "목", "금", "토"];
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+
+let items = [], shown = [], filter = "all", cur = -1;
+let adminPw = store.get("sessionStorage", "ml_admin");
+let viewPw = store.get("localStorage", "ml_view");
+
+const pad = (n) => String(n).padStart(2, "0");
+const dur = (s) => s == null ? "" : `${Math.floor(s / 60)}:${pad(s % 60)}`;
+const parseTaken = (t) => new Date(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10), +t.slice(11, 13), +t.slice(14, 16), +t.slice(17, 19));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ---------- 목록 ----------
+async function load() {
+  try {
+    const r = await fetch("/api/media", { headers: viewPw ? { "x-view-password": viewPw } : {}, cache: "no-store" });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401 && d.locked) return showLock(!!viewPw);
+    if (!r.ok) throw new Error(d.error || "목록을 불러오지 못했어요.");
+    items = d.items || [];
+    render();
+  } catch (e) {
+    $("#sum").textContent = "";
+    $("#bar").hidden = true;
+    $("#lib").innerHTML = `<p class="msg">${esc(e.message || "목록을 불러오지 못했어요.")}<br><button class="btn" type="button" id="retry" style="margin-top:16px">다시 시도</button></p>`;
+    $("#retry").onclick = load;
+  }
+}
+
+function showLock(wrong) {
+  $("#sum").textContent = "";
+  $("#bar").hidden = true;
+  $("#lib").innerHTML = `<form class="lockbox" id="lockf">
+    <p>가족만 볼 수 있는 공간이에요.<br>보기 비밀번호를 넣어 주세요.</p>
+    <label class="sr" for="vpw">보기 비밀번호</label>
+    <input class="field" id="vpw" type="password" autocomplete="current-password" placeholder="보기 비밀번호">
+    <p class="err">${wrong ? "비밀번호가 맞지 않아요." : ""}</p>
+    <button class="btn pri" type="submit">보기</button></form>`;
+  $("#lockf").onsubmit = (e) => {
+    e.preventDefault();
+    const v = $("#vpw").value.trim();
+    if (!v) { $("#lockf .err").textContent = "비밀번호를 넣어 주세요."; return; }
+    viewPw = v; store.set("localStorage", "ml_view", v); load();
+  };
+}
+
+function render() {
+  const nP = items.filter((i) => i.type === "photo").length, nV = items.length - nP;
+  $("#sum").textContent = items.length ? `사진 ${nP}장 · 동영상 ${nV}개` : "";
+  shown = items.filter((i) => filter === "all" || i.type === filter);
+  const lib = $("#lib");
+  if (!items.length) {
+    $("#bar").hidden = true;
+    lib.innerHTML = `<div class="empty"><h2>첫 사진을 올려 보세요</h2><p>올린 사진과 동영상은 찍은 날짜별로 정리돼요.</p><button class="btn pri" type="button" id="emptyUp">올리기</button></div>`;
+    $("#emptyUp").onclick = openUpload;
+    return;
+  }
+  $("#bar").hidden = false;
+  let html = "", jump = "", lastM = "", lastD = "";
+  const dayCount = {};
+  shown.forEach((it) => { const k = it.taken.slice(0, 10); dayCount[k] = (dayCount[k] || 0) + 1; });
+  shown.forEach((it, i) => {
+    const m = it.taken.slice(0, 7), d = it.taken.slice(0, 10), dt = parseTaken(it.taken);
+    if (m !== lastM) {
+      if (lastD) html += "</div>";
+      const label = `${dt.getFullYear()}년 ${dt.getMonth() + 1}월`;
+      html += `<h2 class="month" id="m-${m}">${label}</h2>`;
+      jump += `<option value="${m}">${label}</option>`;
+      lastM = m; lastD = "";
+    }
+    if (d !== lastD) {
+      if (lastD) html += "</div>";
+      html += `<div class="day">${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일<span>${dayCount[d]}개</span></div><div class="grid">`;
+      lastD = d;
+    }
+    const src = it.thumb || (it.type === "photo" ? it.url : "");
+    const alt = `${dt.getMonth() + 1}월 ${dt.getDate()}일 ${it.type === "video" ? "동영상" : "사진"}`;
+    html += `<button class="tile" type="button" data-i="${i}" aria-label="${alt} 크게 보기">` +
+      (src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async">` : `<span class="ph">${it.type === "video" ? "VIDEO" : "PHOTO"}</span>`) +
+      (it.type === "video" ? `<span class="badge">${ICON_PLAY}${dur(it.duration)}</span>` : "") + `</button>`;
+  });
+  if (lastD) html += "</div>";
+  lib.innerHTML = shown.length ? html : `<p class="msg">이 종류는 아직 없어요.</p>`;
+  $("#jump").innerHTML = `<option value="">날짜로 이동</option>` + jump;
+  document.querySelectorAll(".chip").forEach((c) => {
+    const f = c.dataset.f, n = f === "all" ? items.length : f === "photo" ? nP : nV;
+    c.textContent = `${f === "all" ? "전체" : f === "photo" ? "사진" : "동영상"} ${n}`;
+    c.setAttribute("aria-pressed", String(f === filter));
+  });
+}
+
+$("#lib").addEventListener("click", (e) => { const t = e.target.closest(".tile"); if (t) openLb(+t.dataset.i); });
+$("#bar").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) { filter = c.dataset.f; render(); } });
+$("#jump").addEventListener("change", (e) => { const el = document.getElementById("m-" + e.target.value); if (el) el.scrollIntoView({ behavior: "smooth" }); e.target.value = ""; });
+
+// ---------- 크게 보기 ----------
+const lb = $("#lb"), stage = $("#lbStage");
+let lastFocus = null;
+function openLb(i) { lastFocus = document.activeElement; lb.classList.add("on"); document.body.style.overflow = "hidden"; show(i); $("#lbClose").focus(); }
+function closeLb() { lb.classList.remove("on"); document.body.style.overflow = ""; stage.querySelectorAll("img,video").forEach((n) => n.remove()); if (lastFocus) lastFocus.focus(); }
+function show(i) {
+  if (i < 0 || i >= shown.length) return;
+  cur = i; const it = shown[i], dt = parseTaken(it.taken);
+  stage.querySelectorAll("img,video").forEach((n) => n.remove());
+  let el;
+  if (it.type === "video") {
+    el = document.createElement("video");
+    el.src = it.url; el.controls = true; el.playsInline = true; el.preload = "metadata";
+    if (it.thumb) el.poster = it.thumb;
+  } else {
+    el = document.createElement("img"); el.src = it.url; el.alt = "";
+    if (it.thumb) { el.style.background = `center/contain no-repeat url("${it.thumb}")`; }
+    el.draggable = false;
+  }
+  stage.prepend(el);
+  $("#lbCap").innerHTML = `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일<small>${pad(dt.getHours())}:${pad(dt.getMinutes())} · ${(it.size / 1048576).toFixed(1)}MB</small>`;
+  $("#lbDown").href = it.url + (it.url.includes("?") ? "&" : "?") + "download=1";
+  $("#lbDel").hidden = !adminPw;
+  $("#lbPos").textContent = `${i + 1} / ${shown.length}`;
+  $("#lbPrev").style.visibility = i > 0 ? "" : "hidden";
+  $("#lbNext").style.visibility = i < shown.length - 1 ? "" : "hidden";
+}
+$("#lbClose").onclick = closeLb;
+$("#lbPrev").onclick = () => show(cur - 1);
+$("#lbNext").onclick = () => show(cur + 1);
+document.addEventListener("keydown", (e) => {
+  if (!lb.classList.contains("on")) return;
+  if (e.key === "Escape") closeLb();
+  else if (e.key === "ArrowLeft") show(cur - 1);
+  else if (e.key === "ArrowRight") show(cur + 1);
+});
+let sx = null, sy = 0;
+stage.addEventListener("pointerdown", (e) => { if (e.target.tagName !== "VIDEO") { sx = e.clientX; sy = e.clientY; } });
+stage.addEventListener("pointerup", (e) => {
+  if (sx == null) return;
+  const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(cur + (dx < 0 ? 1 : -1));
+});
+$("#lbDel").onclick = async () => {
+  const it = shown[cur];
+  if (!it || !confirm("이 " + (it.type === "video" ? "동영상" : "사진") + "을 지울까요? 지우면 되돌릴 수 없어요.")) return;
+  const r = await fetch("/api/media", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw: adminPw, id: it.id }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { alert(d.error || "지우지 못했어요."); return; }
+  items = items.filter((x) => x.id !== it.id);
+  const next = Math.min(cur, shown.length - 2);
+  render();
+  if (next < 0) closeLb(); else show(next);
+};
+
+// ---------- 올리기 ----------
+const ov = $("#ov");
+let queue = [], busy = false;
+function openUpload() {
+  ov.classList.add("on");
+  $("#upLogin").hidden = !!adminPw; $("#upMain").hidden = !adminPw;
+  (adminPw ? $("#pick") : $("#adminPw")).focus();
+}
+function closeUpload() { if (busy) return; ov.classList.remove("on"); }
+$("#openUp").onclick = openUpload;
+ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-close]")) closeUpload(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && ov.classList.contains("on")) closeUpload(); });
+
+async function login() {
+  const pw = $("#adminPw").value;
+  if (!pw) { $("#loginErr").textContent = "비밀번호를 넣어 주세요."; return; }
+  $("#loginGo").disabled = true; $("#loginErr").textContent = "";
+  try {
+    const r = await fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || "확인하지 못했어요.");
+    adminPw = pw; store.set("sessionStorage", "ml_admin", pw);
+    $("#upLogin").hidden = true; $("#upMain").hidden = false;
+    if (!lb.classList.contains("on")) $("#pick").focus();
+  } catch (e) { $("#loginErr").textContent = e.message; }
+  finally { $("#loginGo").disabled = false; }
+}
+$("#loginGo").onclick = login;
+$("#adminPw").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+$("#adminPw").addEventListener("input", () => { $("#loginErr").textContent = ""; });
+
+// 찍은 날짜 찾기: 사진 정보(EXIF) → 파일 이름(20251103_160206) → 파일 수정 시각
+function dateFromName(name) {
+  const m = /(?:^|\D)((?:19|20)\d{2})(\d{2})(\d{2})(?:[_\-\s.]?(\d{2})(\d{2})(\d{2}))?/.exec(name);
+  if (!m) return null;
+  const [y, mo, d, h = "12", mi = "00", s = "00"] = m.slice(1).map((v) => v);
+  if (+mo < 1 || +mo > 12 || +d < 1 || +d > 31 || +h > 23 || +mi > 59 || +s > 59) return null;
+  return new Date(+y, +mo - 1, +d, +h, +mi, +s);
+}
+let exifr = null;
+async function dateFromExif(file) {
+  if (!file.type.startsWith("image/")) return null;
+  try {
+    exifr = exifr || (await import(EXIFR));
+    const t = await (exifr.parse || exifr.default.parse)(file, ["DateTimeOriginal", "CreateDate"]);
+    const d = t && (t.DateTimeOriginal || t.CreateDate);
+    return d instanceof Date && !isNaN(d) ? d : null;
+  } catch { return null; }
+}
+const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+function canvasJpeg(src, w, h) {
+  const k = Math.min(1, 480 / Math.max(w, h));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  return new Promise((res) => c.toBlob((b) => res(b), "image/jpeg", 0.8));
+}
+async function imageThumb(file) {
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const b = await canvasJpeg(bmp, bmp.width, bmp.height); bmp.close && bmp.close(); return b;
+  } catch {
+    return new Promise((res) => {
+      const img = new Image(), u = URL.createObjectURL(file);
+      img.onload = async () => { const b = await canvasJpeg(img, img.naturalWidth, img.naturalHeight); URL.revokeObjectURL(u); res(b); };
+      img.onerror = () => { URL.revokeObjectURL(u); res(null); };
+      img.src = u;
+    });
+  }
+}
+function videoThumb(file) {
+  return new Promise((res) => {
+    const v = document.createElement("video"), u = URL.createObjectURL(file);
+    let done = false;
+    const fin = (r) => { if (done) return; done = true; URL.revokeObjectURL(u); v.removeAttribute("src"); v.load(); res(r); };
+    const timer = setTimeout(() => fin({ blob: null, duration: isFinite(v.duration) ? Math.round(v.duration) : null }), 10000);
+    v.muted = true; v.playsInline = true; v.preload = "auto";
+    v.onloadedmetadata = () => { v.currentTime = Math.min(1, (v.duration || 2) / 3); };
+    v.onseeked = async () => { clearTimeout(timer); const b = await canvasJpeg(v, v.videoWidth, v.videoHeight).catch(() => null); fin({ blob: b, duration: Math.round(v.duration) }); };
+    v.onerror = () => { clearTimeout(timer); fin({ blob: null, duration: null }); };
+    v.src = u;
+  });
+}
+function rid() {
+  const a = new Uint8Array(12); crypto.getRandomValues(a);
+  return Array.from(a, (x) => "abcdefghijklmnopqrstuvwxyz0123456789"[x % 36]).join("");
+}
+function extOf(file) {
+  const m = /\.([a-z0-9]{1,5})$/i.exec(file.name);
+  if (m) return m[1].toLowerCase();
+  const t = (file.type.split("/")[1] || "").replace("jpeg", "jpg").replace("quicktime", "mov");
+  return /^[a-z0-9]{1,5}$/.test(t) ? t : (file.type.startsWith("video/") ? "mp4" : "jpg");
+}
+
+async function addFiles(list) {
+  $("#upErr").textContent = "";
+  for (const file of list) {
+    const isV = file.type.startsWith("video/"), isP = file.type.startsWith("image/");
+    if (!isV && !isP) { $("#upErr").textContent = `${file.name}: 사진이나 동영상만 올릴 수 있어요.`; continue; }
+    if (file.size > 500 * 1024 * 1024) { $("#upErr").textContent = `${file.name}: 500MB보다 커서 올릴 수 없어요.`; continue; }
+    const job = { file, type: isV ? "video" : "photo", status: "ready", thumb: null, duration: null, date: null };
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="th"></div><div style="min-width:0"><div class="nm"></div><input type="datetime-local" step="1" aria-label="찍은 날짜"><div class="prog"><i></i></div></div><div><div class="st">준비 중</div><button class="rm" type="button">빼기</button></div>`;
+    li.querySelector(".nm").textContent = file.name;
+    job.li = li; queue.push(job); $("#q").appendChild(li);
+    li.querySelector(".rm").onclick = () => { if (busy) return; queue = queue.filter((j) => j !== job); li.remove(); syncGo(); };
+    const input = li.querySelector("input");
+    input.onchange = () => { const d = new Date(input.value); if (!isNaN(d)) job.date = d; };
+    (async () => {
+      job.date = (await dateFromExif(file)) || dateFromName(file.name) || new Date(file.lastModified || Date.now());
+      input.value = toLocalInput(job.date);
+      if (isV) { const r = await videoThumb(file); job.thumb = r.blob; job.duration = r.duration; }
+      else job.thumb = await imageThumb(file);
+      if (job.thumb) li.querySelector(".th").style.backgroundImage = `url(${URL.createObjectURL(job.thumb)})`;
+      job.prepared = true;
+      if (job.status === "ready") li.querySelector(".st").textContent = isV ? `동영상 ${dur(job.duration)}` : "사진";
+      syncGo();
+    })();
+  }
+  syncGo();
+}
+function syncGo() {
+  const n = queue.filter((j) => j.status === "ready").length;
+  const ready = queue.every((j) => j.prepared || j.status !== "ready");
+  $("#upGo").disabled = busy || !n || !ready;
+  $("#upGo").textContent = busy ? "올리는 중…" : n ? `${n}개 올리기` : "올리기";
+}
+$("#files").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
+const pick = $("#pick");
+["dragenter", "dragover"].forEach((t) => pick.addEventListener(t, (e) => { e.preventDefault(); pick.classList.add("drag"); }));
+["dragleave", "drop"].forEach((t) => pick.addEventListener(t, (e) => { e.preventDefault(); pick.classList.remove("drag"); }));
+pick.addEventListener("drop", (e) => addFiles([...e.dataTransfer.files]));
+
+async function uploadAll() {
+  if (busy) return;
+  busy = true; syncGo(); $("#upErr").textContent = "";
+  let mod;
+  try { mod = await import(BLOB_CLIENT); }
+  catch { $("#upErr").textContent = "올리기 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요."; busy = false; syncGo(); return; }
+  let ok = 0, fail = 0;
+  for (const job of queue.filter((j) => j.status === "ready")) {
+    const st = job.li.querySelector(".st"), bar = job.li.querySelector(".prog i");
+    job.status = "busy"; st.className = "st"; st.textContent = "0%";
+    const d = job.date || new Date();
+    const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const id = rid(), kind = job.type === "video" ? "v" + (job.duration ?? "") : "p";
+    const opts = { access: "public", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ pw: adminPw }) };
+    try {
+      await mod.upload(`media/${stamp}_${id}_${kind}.${extOf(job.file)}`, job.file, {
+        ...opts, contentType: job.file.type || undefined, multipart: job.file.size > 50 * 1024 * 1024,
+        onUploadProgress: (p) => { bar.style.width = p.percentage + "%"; st.textContent = Math.round(p.percentage) + "%"; },
+      });
+      if (job.thumb) { try { await mod.upload(`thumbs/${stamp}_${id}.jpg`, job.thumb, { ...opts, contentType: "image/jpeg" }); } catch {} }
+      job.status = "done"; st.textContent = "완료"; st.classList.add("ok"); bar.style.width = "100%"; ok++;
+      job.li.querySelector(".rm").hidden = true;
+    } catch (e) {
+      job.status = "ready"; st.textContent = "실패"; st.classList.add("no"); bar.style.width = "0"; fail++;
+      const msg = String((e && e.message) || "");
+      $("#upErr").textContent = /비밀번호/.test(msg) ? "비밀번호가 맞지 않아요. 창을 닫고 다시 시도해 주세요." : "일부 파일을 올리지 못했어요. 다시 누르면 실패한 것만 다시 올려요.";
+      if (/비밀번호/.test(msg)) { adminPw = null; store.set("sessionStorage", "ml_admin", null); break; }
+    }
+  }
+  busy = false;
+  queue = queue.filter((j) => j.status !== "done");
+  setTimeout(() => { document.querySelectorAll("#q li").forEach((li) => { if (li.querySelector(".st.ok")) li.remove(); }); }, 1500);
+  syncGo();
+  if (ok) load();
+  if (ok && !fail) setTimeout(closeUpload, 900);
+}
+$("#upGo").onclick = uploadAll;
+
+load();
+</script>
+</body>
+</html>
