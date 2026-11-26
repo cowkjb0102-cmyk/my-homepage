@@ -23,7 +23,7 @@ export async function POST(request) {
           return { allowedContentTypes: ["image/jpeg"], maximumSizeInBytes: MAX_THUMB, addRandomSuffix: false };
         }
         if (MEDIA_RE.test(pathname)) {
-          return { allowedContentTypes: ["image/*", "video/*"], maximumSizeInBytes: MAX_MEDIA, addRandomSuffix: false };
+          return { allowedContentTypes: ["image/*", "video/*", "audio/*"], maximumSizeInBytes: MAX_MEDIA, addRandomSuffix: false };
         }
         throw new Error("BAD_PATH");
       },

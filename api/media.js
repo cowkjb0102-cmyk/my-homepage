@@ -27,7 +27,7 @@ function itemFrom(pathname, url, size, thumb) {
   return {
     id,
     taken: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4)}`,
-    type: kind[0] === "v" ? "video" : "photo",
+    type: kind[0] === "v" ? "video" : kind[0] === "a" ? "audio" : "photo",
     duration: kind.length > 1 ? Number(kind.slice(1)) : null,
     url,
     thumb: thumb || null,
@@ -118,6 +118,9 @@ export async function POST(request) {
       if (t && THUMB_RE.test(t.pathname || "") && blobUrlOk(t.url, t.pathname)) thumb = t.url;
       const it = itemFrom(m.pathname, m.url, m.size, thumb);
       if (thumb && !t.pathname.includes(`_${it.id}.`)) it.thumb = null;
+      // 원래 파일 이름 (음악 제목 표시용). 확장자 빼고, 이상한 글자 없이 100자까지만
+      const name = String(body.name || "").replace(/\.[a-z0-9]{1,5}$/i, "").replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 100);
+      if (name) it.name = name;
       await redis([["HSET", KEY, it.id, JSON.stringify(it)]]);
       return json({ ok: true, item: it });
     }

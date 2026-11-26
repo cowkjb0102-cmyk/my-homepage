@@ -47,6 +47,17 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 .tile .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;letter-spacing:.08em}
 .badge{position:absolute;right:6px;bottom:6px;display:flex;align-items:center;gap:3px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:500;padding:2px 7px 2px 5px;border-radius:6px}
 .badge svg{width:12px;height:12px}
+.tile.audio{background:var(--chip);text-align:center}
+.aud{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 10px 28px;color:var(--accent)}
+.aud .note{width:34%;max-width:52px;height:auto}
+.aud-nm{color:var(--ink);font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.aplayer{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(calc(100% - 112px),460px);text-align:center;color:#e0b48f}
+.aplayer .note{width:96px;height:96px}
+.ap-nm{margin:0;color:#f4ede6;font-size:18px;line-height:1.4;overflow-wrap:anywhere}
+.aplayer audio{width:100%}
+.q .th.aud-th{display:flex;align-items:center;justify-content:center;color:var(--accent);background:var(--chip)}
+.q .th.aud-th svg{width:26px;height:26px}
+@media (max-width:720px){.aud{gap:4px;padding:8px 6px 24px}.aud-nm{font-size:11.5px}}
 .empty,.msg{text-align:center;color:var(--muted);padding:72px 16px}
 .empty h2{font:700 22px/1.4 "Gowun Batang",serif;color:var(--ink);margin:0 0 8px}
 .empty p{margin:0 0 22px}
@@ -133,6 +144,7 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
     <button class="chip" type="button" data-f="all" aria-pressed="true">전체</button>
     <button class="chip" type="button" data-f="photo" aria-pressed="false">사진</button>
     <button class="chip" type="button" data-f="video" aria-pressed="false">동영상</button>
+    <button class="chip" type="button" data-f="audio" aria-pressed="false">음악</button>
     <select id="jump" aria-label="날짜로 이동"></select>
   </div>
 
@@ -157,7 +169,7 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 <!-- 올리기 창 -->
 <div class="ov" id="ov">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="upTitle">
-    <h2 id="upTitle">사진·동영상 올리기</h2>
+    <h2 id="upTitle">사진·동영상·음악 올리기</h2>
     <div id="upLogin">
       <p class="hint">올리기와 지우기는 관리자 비밀번호가 있어야 할 수 있어요.</p>
       <label class="sr" for="adminPw">관리자 비밀번호</label>
@@ -166,12 +178,12 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
       <div class="acts"><button class="btn" type="button" data-close>닫기</button><button class="btn pri" type="button" id="loginGo">확인</button></div>
     </div>
     <div id="upMain" hidden>
-      <p class="hint">찍은 날짜는 사진 정보나 파일 이름에서 자동으로 찾아요. 틀리면 고쳐 주세요.</p>
+      <p class="hint">찍은 날짜는 사진 정보나 파일 이름에서 자동으로 찾아요(음악은 파일 날짜). 틀리면 고쳐 주세요.</p>
       <label class="pick" id="pick">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 8"/></svg>
-        <b>사진·동영상 고르기</b>
-        <span>여러 개를 한 번에 고를 수 있어요 · 한 파일 최대 500MB</span>
-        <input type="file" id="files" accept="image/*,video/*" multiple class="sr">
+        <b>사진·동영상·음악 고르기</b>
+        <span>여러 개를 한 번에 고를 수 있어요 · 음악은 mp3, m4a 등 · 한 파일 최대 500MB</span>
+        <input type="file" id="files" accept="image/*,video/*,audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple class="sr">
       </label>
       <ul class="q" id="q"></ul>
       <p class="err" id="upErr"></p>
@@ -191,6 +203,10 @@ const store = {
 };
 const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_NOTE = '<svg class="note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+const ICON_NOTE_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+const KIND = { photo: "사진", video: "동영상", audio: "음악" };
+const AUDIO_EXT = /\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|wma|amr)$/i;
 
 let items = [], shown = [], filter = "all", cur = -1;
 let adminPw = store.get("sessionStorage", "ml_admin");
@@ -236,13 +252,14 @@ function showLock(wrong) {
 }
 
 function render() {
-  const nP = items.filter((i) => i.type === "photo").length, nV = items.length - nP;
-  $("#sum").textContent = items.length ? `사진 ${nP}장 · 동영상 ${nV}개` : "";
+  const cnt = { all: items.length, photo: 0, video: 0, audio: 0 };
+  items.forEach((i) => { cnt[i.type] = (cnt[i.type] || 0) + 1; });
+  $("#sum").textContent = items.length ? `사진 ${cnt.photo}장 · 동영상 ${cnt.video}개 · 음악 ${cnt.audio}곡` : "";
   shown = items.filter((i) => filter === "all" || i.type === filter);
   const lib = $("#lib");
   if (!items.length) {
     $("#bar").hidden = true;
-    lib.innerHTML = `<div class="empty"><h2>첫 사진을 올려 보세요</h2><p>올린 사진과 동영상은 찍은 날짜별로 정리돼요.</p><button class="btn pri" type="button" id="emptyUp">올리기</button></div>`;
+    lib.innerHTML = `<div class="empty"><h2>첫 사진을 올려 보세요</h2><p>올린 사진, 동영상, 음악은 날짜별로 정리돼요.</p><button class="btn pri" type="button" id="emptyUp">올리기</button></div>`;
     $("#emptyUp").onclick = openUpload;
     return;
   }
@@ -264,8 +281,14 @@ function render() {
       html += `<div class="day">${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일<span>${dayCount[d]}개</span></div><div class="grid">`;
       lastD = d;
     }
+    const alt = `${dt.getMonth() + 1}월 ${dt.getDate()}일 ${KIND[it.type]}${it.name ? " " + esc(it.name) : ""}`;
+    if (it.type === "audio") {
+      html += `<button class="tile audio" type="button" data-i="${i}" aria-label="${alt} 듣기">` +
+        `<span class="aud">${ICON_NOTE}<span class="aud-nm">${esc(it.name || "음악")}</span></span>` +
+        (it.duration != null ? `<span class="badge">${ICON_NOTE_SM}${dur(it.duration)}</span>` : "") + `</button>`;
+      return;
+    }
     const src = it.thumb || (it.type === "photo" ? it.url : "");
-    const alt = `${dt.getMonth() + 1}월 ${dt.getDate()}일 ${it.type === "video" ? "동영상" : "사진"}`;
     html += `<button class="tile" type="button" data-i="${i}" aria-label="${alt} 크게 보기">` +
       (src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async">` : `<span class="ph">${it.type === "video" ? "VIDEO" : "PHOTO"}</span>`) +
       (it.type === "video" ? `<span class="badge">${ICON_PLAY}${dur(it.duration)}</span>` : "") + `</button>`;
@@ -274,8 +297,8 @@ function render() {
   lib.innerHTML = shown.length ? html : `<p class="msg">이 종류는 아직 없어요.</p>`;
   $("#jump").innerHTML = `<option value="">날짜로 이동</option>` + jump;
   document.querySelectorAll(".chip").forEach((c) => {
-    const f = c.dataset.f, n = f === "all" ? items.length : f === "photo" ? nP : nV;
-    c.textContent = `${f === "all" ? "전체" : f === "photo" ? "사진" : "동영상"} ${n}`;
+    const f = c.dataset.f;
+    c.textContent = `${f === "all" ? "전체" : KIND[f]} ${cnt[f] || 0}`;
     c.setAttribute("aria-pressed", String(f === filter));
   });
 }
@@ -288,13 +311,22 @@ $("#jump").addEventListener("change", (e) => { const el = document.getElementByI
 const lb = $("#lb"), stage = $("#lbStage");
 let lastFocus = null;
 function openLb(i) { lastFocus = document.activeElement; lb.classList.add("on"); document.body.style.overflow = "hidden"; show(i); $("#lbClose").focus(); }
-function closeLb() { lb.classList.remove("on"); document.body.style.overflow = ""; stage.querySelectorAll("img,video").forEach((n) => n.remove()); if (lastFocus) lastFocus.focus(); }
+const MEDIA_SEL = "img,video,.aplayer";
+function closeLb() { lb.classList.remove("on"); document.body.style.overflow = ""; stage.querySelectorAll(MEDIA_SEL).forEach((n) => n.remove()); if (lastFocus) lastFocus.focus(); }
 function show(i) {
   if (i < 0 || i >= shown.length) return;
   cur = i; const it = shown[i], dt = parseTaken(it.taken);
-  stage.querySelectorAll("img,video").forEach((n) => n.remove());
+  stage.querySelectorAll(MEDIA_SEL).forEach((n) => n.remove());
   let el;
-  if (it.type === "video") {
+  if (it.type === "audio") {
+    el = document.createElement("div"); el.className = "aplayer";
+    el.innerHTML = `${ICON_NOTE}<p class="ap-nm"></p>`;
+    el.querySelector(".ap-nm").textContent = it.name || "음악";
+    const a = document.createElement("audio");
+    a.src = it.url; a.controls = true; a.preload = "metadata";
+    a.setAttribute("aria-label", (it.name || "음악") + " 재생");
+    el.appendChild(a);
+  } else if (it.type === "video") {
     el = document.createElement("video");
     el.src = it.url; el.controls = true; el.playsInline = true; el.preload = "metadata";
     if (it.thumb) el.poster = it.thumb;
@@ -321,7 +353,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowRight") show(cur + 1);
 });
 let sx = null, sy = 0;
-stage.addEventListener("pointerdown", (e) => { if (e.target.tagName !== "VIDEO") { sx = e.clientX; sy = e.clientY; } });
+stage.addEventListener("pointerdown", (e) => { if (!e.target.closest("video,audio")) { sx = e.clientX; sy = e.clientY; } });
 stage.addEventListener("pointerup", (e) => {
   if (sx == null) return;
   const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
@@ -329,7 +361,7 @@ stage.addEventListener("pointerup", (e) => {
 });
 $("#lbDel").onclick = async () => {
   const it = shown[cur];
-  if (!it || !confirm("이 " + (it.type === "video" ? "동영상" : "사진") + "을 지울까요? 지우면 되돌릴 수 없어요.")) return;
+  if (!it || !confirm("이 " + KIND[it.type] + "을 지울까요? 지우면 되돌릴 수 없어요.")) return;
   const r = await fetch("/api/media", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw: adminPw, id: it.id }) });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) { alert(d.error || "지우지 못했어요."); return; }
@@ -434,13 +466,27 @@ function extOf(file) {
   return /^[a-z0-9]{1,5}$/.test(t) ? t : (file.type.startsWith("video/") ? "mp4" : "jpg");
 }
 
+// 음악 길이(초) 알아내기. 브라우저가 못 읽는 형식이면 null
+function audioLength(file) {
+  return new Promise((res) => {
+    const a = document.createElement("audio"), u = URL.createObjectURL(file);
+    const fin = (v) => { clearTimeout(t); URL.revokeObjectURL(u); a.removeAttribute("src"); res(v); };
+    const t = setTimeout(() => fin(null), 8000);
+    a.preload = "metadata";
+    a.onloadedmetadata = () => fin(isFinite(a.duration) ? Math.round(a.duration) : null);
+    a.onerror = () => fin(null);
+    a.src = u;
+  });
+}
+
 async function addFiles(list) {
   $("#upErr").textContent = "";
   for (const file of list) {
-    const isV = file.type.startsWith("video/"), isP = file.type.startsWith("image/");
-    if (!isV && !isP) { $("#upErr").textContent = `${file.name}: 사진이나 동영상만 올릴 수 있어요.`; continue; }
+    const isA = file.type.startsWith("audio/") || (!file.type && AUDIO_EXT.test(file.name));
+    const isV = !isA && file.type.startsWith("video/"), isP = file.type.startsWith("image/");
+    if (!isV && !isP && !isA) { $("#upErr").textContent = `${file.name}: 사진, 동영상, 음악 파일만 올릴 수 있어요.`; continue; }
     if (file.size > 500 * 1024 * 1024) { $("#upErr").textContent = `${file.name}: 500MB보다 커서 올릴 수 없어요.`; continue; }
-    const job = { file, type: isV ? "video" : "photo", status: "ready", thumb: null, duration: null, date: null };
+    const job = { file, type: isA ? "audio" : isV ? "video" : "photo", status: "ready", thumb: null, duration: null, date: null };
     const li = document.createElement("li");
     li.innerHTML = `<div class="th"></div><div style="min-width:0"><div class="nm"></div><input type="datetime-local" step="1" aria-label="찍은 날짜"><div class="prog"><i></i></div></div><div><div class="st">준비 중</div><button class="rm" type="button">빼기</button></div>`;
     li.querySelector(".nm").textContent = file.name;
@@ -451,11 +497,12 @@ async function addFiles(list) {
     (async () => {
       job.date = (await dateFromExif(file)) || dateFromName(file.name) || new Date(file.lastModified || Date.now());
       input.value = toLocalInput(job.date);
-      if (isV) { const r = await videoThumb(file); job.thumb = r.blob; job.duration = r.duration; }
+      if (isA) { job.duration = await audioLength(file); li.querySelector(".th").innerHTML = ICON_NOTE; li.querySelector(".th").classList.add("aud-th"); }
+      else if (isV) { const r = await videoThumb(file); job.thumb = r.blob; job.duration = r.duration; }
       else job.thumb = await imageThumb(file);
       if (job.thumb) li.querySelector(".th").style.backgroundImage = `url(${URL.createObjectURL(job.thumb)})`;
       job.prepared = true;
-      if (job.status === "ready") li.querySelector(".st").textContent = isV ? `동영상 ${dur(job.duration)}` : "사진";
+      if (job.status === "ready") li.querySelector(".st").textContent = job.type === "photo" ? "사진" : `${KIND[job.type]} ${dur(job.duration)}`;
       syncGo();
     })();
   }
@@ -485,7 +532,7 @@ async function uploadAll() {
     job.status = "busy"; st.className = "st"; st.textContent = "0%";
     const d = job.date || new Date();
     const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-    const id = rid(), kind = job.type === "video" ? "v" + (job.duration ?? "") : "p";
+    const id = rid(), kind = job.type === "photo" ? "p" : (job.type === "video" ? "v" : "a") + (job.duration ?? "");
     const opts = { access: "public", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ pw: adminPw }) };
     try {
       const up = await mod.upload(`media/${stamp}_${id}_${kind}.${extOf(job.file)}`, job.file, {
@@ -498,7 +545,7 @@ async function uploadAll() {
       try {
         await fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
           pw: adminPw, action: "add",
-          media: { pathname: up.pathname, url: up.url, size: job.file.size },
+          media: { pathname: up.pathname, url: up.url, size: job.file.size }, name: job.file.name,
           thumb: th ? { pathname: th.pathname, url: th.url } : null,
         }) });
       } catch {}
