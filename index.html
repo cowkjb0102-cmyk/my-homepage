@@ -36,6 +36,14 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 .slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,50% 50%);opacity:0;transform:scale(1.08);transition:opacity 1.2s ease,transform 4.2s ease-out}
 .slide.on{opacity:1;transform:scale(1)}
 @media (prefers-reduced-motion:reduce){.slide{transform:none;transition:opacity 1.2s ease}}
+.ctl{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(26,21,18,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.ctl button{width:36px;height:36px;border:0;border-radius:50%;background:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation}
+.ctl button:hover{background:rgba(255,255,255,.18)}
+.ctl button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.ctl svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ctl .i-play{fill:currentColor;stroke:none}
+.ctl .i-play,.ctl [aria-pressed="true"] .i-pause{display:none}
+.ctl [aria-pressed="true"] .i-play{display:block}
 
 .body{background:var(--paper);border-top:1px solid var(--line)}
 .body-in{max-width:1080px;margin:0 auto;padding:24px 20px 96px}
@@ -101,6 +109,11 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
         <img class="slide" src="photos/07.jpg" alt="대학교 학위수여식에서" style="--pos:52% 65%" loading="lazy">
         <img class="slide" src="photos/08.jpg" alt="함께 찍은 셀카" style="--pos:55% 60%" loading="lazy">
       </div>
+      <div class="ctl" role="group" aria-label="슬라이드쇼 조작">
+        <button type="button" id="sPrev" aria-label="이전 사진"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button type="button" id="sPlay" aria-label="자동 넘김 멈추기" aria-pressed="false"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+        <button type="button" id="sNext" aria-label="다음 사진"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
     </figure>
   </div>
 
@@ -140,13 +153,20 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
     slides.forEach(function(s,k){s.classList.toggle("on",k===i)});
     var nx=slides[(i+1)%slides.length]; if(nx.loading==="lazy")nx.loading="eager"; // 다음 사진 미리 불러오기
   }
-  function run(){clearInterval(timer);timer=setInterval(function(){go(i+1)},3000)}
+  // 멈춤 버튼으로 자동 넘김을 끌 수 있어요. '움직임 줄이기' 설정을 켠 기기에서는 처음부터 멈춰 있어요.
+  var paused=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var playBtn=document.getElementById("sPlay");
+  function run(){clearInterval(timer);if(!paused)timer=setInterval(function(){go(i+1)},3000)}
+  function setPaused(p){paused=p;playBtn.setAttribute("aria-pressed",p?"true":"false");playBtn.setAttribute("aria-label",p?"자동 넘김 다시 시작":"자동 넘김 멈추기");run()}
+  playBtn.addEventListener("click",function(){setPaused(!paused)});
+  document.getElementById("sPrev").addEventListener("click",function(){go(i-1);run()});
+  document.getElementById("sNext").addEventListener("click",function(){go(i+1);run()});
   // 휴대폰에서는 옆으로 밀어서도 넘길 수 있어요
   var x0=null;
   frame.addEventListener("touchstart",function(e){x0=e.touches[0].clientX},{passive:true});
   frame.addEventListener("touchend",function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){go(i+(dx<0?1:-1));run()}x0=null});
   document.addEventListener("visibilitychange",function(){if(document.hidden)clearInterval(timer);else run()});
-  go(0); run();
+  go(0); setPaused(paused);
 })();
 </script>
 </body>

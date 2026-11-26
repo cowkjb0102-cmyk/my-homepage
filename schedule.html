@@ -42,6 +42,9 @@ h2{font-size:14px;margin:4px 4px 10px;color:var(--sub);font-weight:600}
 .sheet{background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
 .sheet input{width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
 .sheet .row{display:flex;gap:8px}
+.sheet .row>div{flex:1;min-width:0}
+.sheet label{display:block;font-size:12px;color:var(--sub);margin:0 0 4px 2px}
+.sheet{overscroll-behavior:contain}
 .sheet .go{width:100%;padding:14px;border:0;border-radius:12px;background:var(--pri);color:var(--onpri);font-size:16px;font-weight:700;cursor:pointer}
 .cancel{width:100%;background:none;border:0;color:var(--sub);padding:10px;margin-top:4px;font-size:14px;cursor:pointer}
 </style>
@@ -71,12 +74,17 @@ h2{font-size:14px;margin:4px 4px 10px;color:var(--sub);font-weight:600}
 </div>
 <button class="fab" id="fab" aria-label="일정 추가">+</button>
 <div class="ov" id="ov">
-  <div class="sheet">
-    <input type="text" id="title" placeholder="일정 (예: 병원 예약)">
-    <div class="row"><input type="date" id="date"><input type="time" id="time" aria-label="시간 (선택)"></div>
-    <input type="text" id="memo" placeholder="메모 (선택)">
-    <button class="go" id="save">저장</button>
-    <button class="cancel" id="cx">취소</button>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="일정 추가">
+    <label for="title">일정</label>
+    <input type="text" id="title" name="title" autocomplete="off" placeholder="예: 병원 예약…">
+    <div class="row">
+      <div><label for="date">날짜</label><input type="date" id="date" name="date"></div>
+      <div><label for="time">시간 (선택)</label><input type="time" id="time" name="time"></div>
+    </div>
+    <label for="memo">메모 (선택)</label>
+    <input type="text" id="memo" name="memo" autocomplete="off" placeholder="예: 진료 카드 챙기기…">
+    <button class="go" id="save" type="button">저장</button>
+    <button class="cancel" id="cx" type="button">취소</button>
   </div>
 </div>
 <script>
@@ -112,7 +120,8 @@ $("prev").onclick=function(){shift(-1)};$("next").onclick=function(){shift(1)};
 $("tdy").onclick=function(){var t=new Date();view=new Date(t.getFullYear(),t.getMonth(),1);sel=fmt(t);render()};
 $("grid").onclick=function(e){var b=e.target.closest&&e.target.closest("[data-d]");if(b){sel=b.getAttribute("data-d");render()}};
 $("fab").onclick=function(){$("title").value="";$("time").value="";$("memo").value="";$("date").value=sel;$("ov").classList.add("on");$("title").focus()};
-function close(){$("ov").classList.remove("on")}
+function close(){if(!$("ov").classList.contains("on"))return;$("ov").classList.remove("on");$("fab").focus()}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
 $("cx").onclick=close;$("ov").onclick=function(e){if(e.target===$("ov"))close()};
 $("save").onclick=function(){
   var ti=$("title").value.trim();if(!ti){$("title").focus();return}

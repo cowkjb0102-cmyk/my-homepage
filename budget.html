@@ -43,6 +43,8 @@ h2{font-size:14px;margin:0 0 10px;color:var(--sub);font-weight:600}
 .seg button{flex:1;border:0;background:none;color:var(--sub);padding:9px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .sheet input,.sheet select{width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
+.sheet label{display:block;font-size:12px;color:var(--sub);margin:0 0 4px 2px}
+.sheet{overscroll-behavior:contain;max-height:90vh;overflow:auto}
 .sheet .go{width:100%;padding:14px;border:0;border-radius:12px;background:var(--pri);color:var(--onpri);font-size:16px;font-weight:700;cursor:pointer}
 .cancel{width:100%;background:none;border:0;color:var(--sub);padding:10px;margin-top:4px;font-size:14px;cursor:pointer}
 </style>
@@ -75,15 +77,20 @@ h2{font-size:14px;margin:0 0 10px;color:var(--sub);font-weight:600}
 </div>
 <button class="fab" id="fab" aria-label="내역 추가">+</button>
 <div class="ov" id="ov">
-  <div class="sheet">
-    <div class="seg"><button id="tE" class="on">지출</button><button id="tI">수입</button></div>
-    <input type="number" id="amt" inputmode="numeric" placeholder="금액 (원)">
-    <select id="cat"></select>
-    <select id="sub"></select>
-    <input type="text" id="memo" placeholder="내용 (선택)">
-    <input type="date" id="date">
-    <button class="go" id="save">저장</button>
-    <button class="cancel" id="cx">취소</button>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="내역 추가">
+    <div class="seg" role="group" aria-label="종류"><button id="tE" class="on" type="button" aria-pressed="true">지출</button><button id="tI" type="button" aria-pressed="false">수입</button></div>
+    <label for="amt">금액 (원)</label>
+    <input type="number" id="amt" name="amount" inputmode="numeric" autocomplete="off" placeholder="예: 12000…">
+    <label for="cat">분류</label>
+    <select id="cat" name="category"></select>
+    <label for="sub" id="subLbl">세부 분류</label>
+    <select id="sub" name="subcategory"></select>
+    <label for="memo">내용 (선택)</label>
+    <input type="text" id="memo" name="memo" autocomplete="off" placeholder="예: 점심 김밥…">
+    <label for="date">날짜</label>
+    <input type="date" id="date" name="date">
+    <button class="go" id="save" type="button">저장</button>
+    <button class="cancel" id="cx" type="button">취소</button>
   </div>
 </div>
 <script>
@@ -114,13 +121,15 @@ function render(){
   $("list").innerHTML=h||'<div class="empty">아직 내역이 없어요.<br>아래 + 버튼으로 추가해보세요.</div>';
 }
 function setType(t){type=t;$("tE").className=t==="e"?"on":"";$("tI").className=t==="i"?"on":"";
+  $("tE").setAttribute("aria-pressed",t==="e"?"true":"false");$("tI").setAttribute("aria-pressed",t==="i"?"true":"false");
   $("cat").innerHTML=CATS[t].map(function(c){return "<option>"+c+"</option>"}).join("");updSub()}
-function updSub(){var s=SUB[$("cat").value];$("sub").style.display=s?"block":"none";$("sub").innerHTML=(s||[]).map(function(c){return "<option>"+c+"</option>"}).join("")}
+function updSub(){var s=SUB[$("cat").value];$("sub").style.display=s?"block":"none";$("subLbl").style.display=s?"block":"none";$("sub").innerHTML=(s||[]).map(function(c){return "<option>"+c+"</option>"}).join("")}
 $("cat").onchange=updSub;
 $("prev").onclick=function(){shift(-1)};$("next").onclick=function(){shift(1)};
 $("tE").onclick=function(){setType("e")};$("tI").onclick=function(){setType("i")};
 $("fab").onclick=function(){setType("e");$("amt").value="";$("memo").value="";$("date").value=today();$("ov").classList.add("on");$("amt").focus()};
-function close(){$("ov").classList.remove("on")}
+function close(){if(!$("ov").classList.contains("on"))return;$("ov").classList.remove("on");$("fab").focus()}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
 $("cx").onclick=close;$("ov").onclick=function(e){if(e.target===$("ov"))close()};
 $("save").onclick=function(){
   var a=Math.round(+$("amt").value);
