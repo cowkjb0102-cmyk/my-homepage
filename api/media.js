@@ -42,7 +42,7 @@ export async function GET(request) {
       });
     }
     items.sort((a, b) => (a.taken < b.taken ? 1 : a.taken > b.taken ? -1 : 0));
-    const res = json({ items, viewLock: !!process.env.VIEW_PASSWORD, googleClientId: process.env.GOOGLE_CLIENT_ID || null });
+    const res = json({ items, viewLock: !!process.env.VIEW_PASSWORD });
     // 보기 잠금이 없으면 목록을 2분 동안 CDN에 저장해 두어, 저장소 '목록 읽기' 횟수(무료 한도)를 아껴요.
     // 올리기/지우기 직후에는 화면이 ?fresh= 를 붙여 새로 받아요.
     if (!process.env.VIEW_PASSWORD) res.headers.set("cache-control", "public, max-age=0, s-maxage=120, stale-while-revalidate=60");

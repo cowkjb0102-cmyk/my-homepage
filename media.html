@@ -100,15 +100,6 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 .prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .acts{display:flex;gap:8px;margin-top:16px}
 .acts .btn{flex:1;justify-content:center}
-.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px;margin:14px 0}
-.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
-.btn.gp{width:100%;justify-content:center;height:48px}
-.btn.gp svg{width:20px;height:20px}
-.gpbox{margin-top:12px;padding:14px;border-radius:12px;background:var(--chip);font-size:14px;line-height:1.6}
-.gpbox .btn{margin-top:10px}
-.gpbox ol{margin:8px 0 0;padding-left:20px;max-height:200px;overflow:auto}
-.gpbox li{font-size:13px;color:var(--muted)}
-.gpbox li.ok{color:var(--accent)}.gpbox li.no{color:var(--danger)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 </head>
@@ -182,12 +173,6 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
         <span>여러 개를 한 번에 고를 수 있어요 · 한 파일 최대 500MB</span>
         <input type="file" id="files" accept="image/*,video/*" multiple class="sr">
       </label>
-      <div class="or"><span>또는</span></div>
-      <button class="btn gp" type="button" id="gpGo">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 2a5 5 0 0 1 5 5v5H12z"/><path fill="#FBBC04" d="M22 12a5 5 0 0 1-5 5h-5v-5z"/><path fill="#34A853" d="M12 22a5 5 0 0 1-5-5v-5h5z"/><path fill="#4285F4" d="M2 12a5 5 0 0 1 5-5h5v5z"/></svg>
-        구글 포토에서 가져오기
-      </button>
-      <div class="gpbox" id="gpBox" hidden></div>
       <ul class="q" id="q"></ul>
       <p class="err" id="upErr"></p>
       <div class="acts"><button class="btn" type="button" data-close>닫기</button><button class="btn pri" type="button" id="upGo" disabled>올리기</button></div>
@@ -217,7 +202,6 @@ const parseTaken = (t) => new Date(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // ---------- 목록 ----------
-let gClientId = null;
 async function load(fresh) {
   try {
     const r = await fetch("/api/media" + (fresh ? "?fresh=" + Date.now() : ""), { headers: viewPw ? { "x-view-password": viewPw } : {}, cache: "no-store" });
@@ -225,7 +209,6 @@ async function load(fresh) {
     if (r.status === 401 && d.locked) return showLock(!!viewPw);
     if (!r.ok) throw new Error(d.error || "목록을 불러오지 못했어요.");
     items = d.items || [];
-    gClientId = d.googleClientId || null;
     render();
   } catch (e) {
     $("#sum").textContent = "";
@@ -527,124 +510,6 @@ async function uploadAll() {
   if (ok && !fail) setTimeout(closeUpload, 900);
 }
 $("#upGo").onclick = uploadAll;
-
-// ---------- 구글 포토에서 가져오기 ----------
-// 1) 구글 로그인(사진 고르기 권한만) → 2) 구글 포토 창에서 고르기 → 3) 고른 것을 서버가 저장소로 옮김
-const GP_SCOPE = "https://www.googleapis.com/auth/photospicker.mediaitems.readonly";
-const GP_API = "https://photospicker.googleapis.com/v1";
-const gpBox = $("#gpBox");
-let gis = null, gToken = null, gTokenUntil = 0, gpBusy = false;
-function loadGis() {
-  if (gis) return gis;
-  gis = new Promise((res, rej) => {
-    const s = document.createElement("script");
-    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
-    s.onload = () => res(window.google); s.onerror = () => { gis = null; rej(new Error("gis")); };
-    document.head.appendChild(s);
-  });
-  return gis;
-}
-function gpMsg(html) { gpBox.hidden = false; gpBox.innerHTML = html; }
-const secs = (s) => parseFloat(String(s || "").replace("s", "")) || 0;
-async function gapi(path, opts = {}) {
-  const r = await fetch(GP_API + path, { ...opts, headers: { authorization: "Bearer " + gToken, "content-type": "application/json", ...(opts.headers || {}) } });
-  if (r.status === 401) { gToken = null; throw new Error("구글 로그인이 만료됐어요. 다시 눌러 주세요."); }
-  if (!r.ok) throw new Error("구글 포토와 연결하지 못했어요. (" + r.status + ")");
-  return r.status === 204 ? {} : r.json();
-}
-const _openUpload = openUpload;
-openUpload = function () { _openUpload(); if (gClientId) loadGis().catch(() => {}); };
-$("#openUp").onclick = openUpload;
-
-$("#gpGo").onclick = () => {
-  if (gpBusy) return;
-  if (!gClientId) {
-    gpMsg("구글 포토 연결 설정이 아직 안 됐어요. 구글 클라우드에서 만든 <b>클라이언트 ID</b>를 Vercel 설정의 <code>GOOGLE_CLIENT_ID</code>에 넣으면 쓸 수 있어요.");
-    return;
-  }
-  if (!window.google || !google.accounts) {
-    gpMsg("구글 로그인 도구를 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.");
-    loadGis().catch(() => gpMsg("구글 로그인 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요."));
-    return;
-  }
-  if (gToken && Date.now() < gTokenUntil) return startSession();
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: gClientId, scope: GP_SCOPE,
-    callback: (r) => {
-      if (!r || r.error || !r.access_token) { gpMsg("구글 로그인이 취소됐거나 실패했어요."); return; }
-      gToken = r.access_token; gTokenUntil = Date.now() + (Number(r.expires_in) || 3000) * 1000 - 60000;
-      startSession();
-    },
-    error_callback: () => gpMsg("구글 로그인 창이 닫혔어요. 다시 눌러 주세요."),
-  });
-  client.requestAccessToken();
-};
-
-async function startSession() {
-  gpBusy = true;
-  gpMsg("구글 포토와 연결하는 중…");
-  try {
-    const s = await gapi("/sessions", { method: "POST", body: "{}" });
-    gpMsg(`구글 포토 창에서 가져올 사진·동영상을 고른 뒤 <b>완료</b>를 눌러 주세요.<br><a class="btn pri" id="gpOpen" href="${esc(s.pickerUri)}/autoclose" target="_blank" rel="noopener">구글 포토 열기</a>`);
-    $("#gpOpen").addEventListener("click", () => {
-      gpMsg("구글 포토 창에서 고르는 중이에요… 다 고르면 자동으로 이어서 가져와요.");
-      poll(s);
-    });
-  } catch (e) { gpBusy = false; gpMsg(esc(e.message)); }
-}
-
-async function poll(s) {
-  const until = Date.now() + (secs(s.pollingConfig && s.pollingConfig.timeoutIn) || 1800) * 1000;
-  let wait = secs(s.pollingConfig && s.pollingConfig.pollInterval) || 3;
-  try {
-    while (Date.now() < until) {
-      await new Promise((r) => setTimeout(r, wait * 1000));
-      const cur = await gapi("/sessions/" + encodeURIComponent(s.id));
-      if (cur.mediaItemsSet) return importPicked(s.id);
-      wait = secs(cur.pollingConfig && cur.pollingConfig.pollInterval) || wait;
-    }
-    gpBusy = false; gpMsg("시간이 지나서 고르기가 끝났어요. 다시 눌러 주세요.");
-  } catch (e) { gpBusy = false; gpMsg(esc(e.message)); }
-}
-
-async function importPicked(sessionId) {
-  let picked = [], token = "";
-  try {
-    do {
-      const r = await gapi(`/mediaItems?sessionId=${encodeURIComponent(sessionId)}&pageSize=100` + (token ? "&pageToken=" + encodeURIComponent(token) : ""));
-      picked = picked.concat(r.mediaItems || []);
-      token = r.nextPageToken || "";
-    } while (token);
-  } catch (e) { gpBusy = false; gpMsg(esc(e.message)); return; }
-  if (!picked.length) { gpBusy = false; gpMsg("고른 사진이 없어요."); return; }
-  gpMsg(`<span id="gpSt">${picked.length}개 가져오는 중… 창을 닫지 마세요.</span><ol id="gpList"></ol>`);
-  const list = $("#gpList");
-  const rows = picked.map((it) => {
-    const li = document.createElement("li");
-    const t = new Date(it.createTime);
-    li.textContent = `${(it.mediaFile && it.mediaFile.filename) || (it.type === "VIDEO" ? "동영상" : "사진")} · ${isNaN(t) ? "" : t.toLocaleDateString("ko-KR")} — 대기`;
-    list.appendChild(li); return li;
-  });
-  let ok = 0, fail = 0;
-  for (let i = 0; i < picked.length; i++) {
-    const li = rows[i], base = li.textContent.replace(/ — 대기$/, "");
-    li.textContent = base + " — 가져오는 중";
-    try {
-      const r = await fetch("/api/gphotos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw: adminPw, token: gToken, item: picked[i] }) });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw Object.assign(new Error(d.error || "실패"), { status: r.status });
-      li.textContent = base + " — 완료"; li.className = "ok"; ok++;
-    } catch (e) {
-      li.textContent = base + " — " + e.message; li.className = "no"; fail++;
-      if (e.status === 401 && /비밀번호/.test(e.message)) { adminPw = null; store.set("sessionStorage", "ml_admin", null); break; }
-    }
-    $("#gpSt").textContent = `${picked.length}개 중 ${ok + fail}개 처리 (완료 ${ok}${fail ? ", 실패 " + fail : ""})`;
-  }
-  gapi("/sessions/" + encodeURIComponent(sessionId), { method: "DELETE" }).catch(() => {});
-  gpBusy = false;
-  $("#gpSt").textContent = `가져오기 끝: 완료 ${ok}개${fail ? ", 실패 " + fail + "개" : ""}`;
-  if (ok) load(true);
-}
 
 load();
 </script>

@@ -1,5 +1,0 @@
-{
-  "functions": {
-    "api/gphotos.js": { "maxDuration": 300 }
-  }
-}
