@@ -81,8 +81,31 @@ function blobUrlOk(url, pathname) {
   } catch { return false; }
 }
 
+// 배경음악: 관리자가 고른 곡(없으면 라이브러리의 가장 최근 음악)
+const BGM = "media:bgm";
+async function currentBgm() {
+  if (!redisReady()) return null;
+  const [id] = await redis([["GET", BGM]]);
+  if (id === "off") return null;
+  if (id) {
+    const [raw] = await redis([["HGET", KEY, id]]);
+    if (raw) { try { return JSON.parse(raw); } catch {} }
+  }
+  const audio = (await readIndex()).filter((i) => i.type === "audio").sort(newestFirst);
+  return audio[0] || null;
+}
+
 // GET: 찍은 날짜순(최신 먼저) 목록
+//      ?bgm=1 이면 배경음악 한 곡만 { bgm:{id,url,name} | null }
 export async function GET(request) {
+  if (new URL(request.url).searchParams.has("bgm")) {
+    try {
+      const b = await currentBgm();
+      return json({ bgm: b ? { id: b.id, url: b.url, name: b.name || "배경음악" } : null });
+    } catch {
+      return json({ bgm: null });
+    }
+  }
   if (!canView(request.headers.get("x-view-password"))) {
     return json({ locked: true, error: "보기 비밀번호가 필요해요." }, 401);
   }
@@ -98,6 +121,7 @@ export async function GET(request) {
 // POST: { pw } 비밀번호 확인
 //       { pw, action:"add", media:{pathname,url,size}, thumb:{pathname,url}|null } 올린 파일을 목록에 추가
 //       { pw, action:"rebuild" } 저장소를 다시 훑어 목록 새로 만들기
+//       { pw, action:"bgm", id } 배경음악 정하기 (id:"off" 면 끄기)
 export async function POST(request) {
   let body = {};
   try { body = await request.json(); } catch {}
@@ -107,6 +131,16 @@ export async function POST(request) {
   if (!redisReady()) return json({ ok: true, skipped: true });
 
   try {
+    if (body.action === "bgm") {
+      const id = String(body.id || "");
+      if (id === "off") { await redis([["SET", BGM, "off"]]); return json({ ok: true, bgm: null }); }
+      if (!/^[a-z0-9]{12}$/.test(id)) return json({ error: "잘못된 요청이에요." }, 400);
+      const [raw] = await redis([["HGET", KEY, id]]);
+      const it = raw && JSON.parse(raw);
+      if (!it || it.type !== "audio") return json({ error: "음악 파일만 배경음악으로 정할 수 있어요." }, 400);
+      await redis([["SET", BGM, id]]);
+      return json({ ok: true, bgm: { id, name: it.name || "배경음악" } });
+    }
     if (body.action === "rebuild") {
       const items = await rebuildIndex();
       return json({ ok: true, count: items.length });

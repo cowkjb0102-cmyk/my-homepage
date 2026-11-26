@@ -83,6 +83,10 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 .ib:hover{background:rgba(255,255,255,.18)}
 .ib svg{width:22px;height:22px}
 .ib.del{color:#ffb4ab}
+.lbbgm{height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:none;color:inherit;font-size:13px;cursor:pointer;white-space:nowrap;flex:none}
+.lbbgm:hover{background:rgba(255,255,255,.12)}
+.lbbgm[aria-pressed="true"]{background:#e0b48f;border-color:#e0b48f;color:#2b211c}
+.lbbgm:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .lb-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 .lb-stage img,.lb-stage video{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
 .lb-nav{position:absolute;top:50%;transform:translateY(-50%)}
@@ -156,6 +160,7 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
   <div class="lb-top">
     <button class="ib" type="button" id="lbClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="lb-cap" id="lbCap"></div>
+    <button class="lbbgm" type="button" id="lbBgm" hidden></button>
     <a class="ib" id="lbDown" aria-label="원본 받기" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg></a>
     <button class="ib del" type="button" id="lbDel" aria-label="지우기" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
   </div>
@@ -339,6 +344,10 @@ function show(i) {
   $("#lbCap").innerHTML = `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일<small>${pad(dt.getHours())}:${pad(dt.getMinutes())} · ${(it.size / 1048576).toFixed(1)}MB</small>`;
   $("#lbDown").href = it.url + (it.url.includes("?") ? "&" : "?") + "download=1";
   $("#lbDel").hidden = !adminPw;
+  const bb = $("#lbBgm"), isBgm = it.id === bgmId;
+  bb.hidden = !(adminPw && it.type === "audio");
+  bb.textContent = isBgm ? "✓ 지금 배경음악" : "배경음악으로 정하기";
+  bb.setAttribute("aria-pressed", String(isBgm));
   $("#lbPos").textContent = `${i + 1} / ${shown.length}`;
   $("#lbPrev").style.visibility = i > 0 ? "" : "hidden";
   $("#lbNext").style.visibility = i < shown.length - 1 ? "" : "hidden";
@@ -359,6 +368,20 @@ stage.addEventListener("pointerup", (e) => {
   const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
   if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(cur + (dx < 0 ? 1 : -1));
 });
+// 배경음악 정하기 (관리자만). 이미 배경음악인 곡을 다시 누르면 배경음악을 꺼요.
+let bgmId = null;
+fetch("/api/media?bgm=1", { cache: "no-store" }).then((r) => r.json()).then((d) => { bgmId = d && d.bgm ? d.bgm.id : null; }).catch(() => {});
+$("#lbBgm").onclick = async () => {
+  const it = shown[cur]; if (!it) return;
+  const off = it.id === bgmId;
+  if (off && !confirm("배경음악을 끌까요? 홈페이지에 음악이 나오지 않게 돼요.")) return;
+  const r = await fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw: adminPw, action: "bgm", id: off ? "off" : it.id }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { alert(d.error || "정하지 못했어요."); return; }
+  bgmId = off ? null : it.id;
+  $("#lbBgm").textContent = off ? "배경음악으로 정하기" : "✓ 지금 배경음악";
+  $("#lbBgm").setAttribute("aria-pressed", String(!off));
+};
 $("#lbDel").onclick = async () => {
   const it = shown[cur];
   if (!it || !confirm("이 " + KIND[it.type] + "을 지울까요? 지우면 되돌릴 수 없어요.")) return;
