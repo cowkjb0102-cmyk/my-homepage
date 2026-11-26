@@ -488,11 +488,20 @@ async function uploadAll() {
     const id = rid(), kind = job.type === "video" ? "v" + (job.duration ?? "") : "p";
     const opts = { access: "public", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ pw: adminPw }) };
     try {
-      await mod.upload(`media/${stamp}_${id}_${kind}.${extOf(job.file)}`, job.file, {
+      const up = await mod.upload(`media/${stamp}_${id}_${kind}.${extOf(job.file)}`, job.file, {
         ...opts, contentType: job.file.type || undefined, multipart: job.file.size > 50 * 1024 * 1024,
         onUploadProgress: (p) => { bar.style.width = p.percentage + "%"; st.textContent = Math.round(p.percentage) + "%"; },
       });
-      if (job.thumb) { try { await mod.upload(`thumbs/${stamp}_${id}.jpg`, job.thumb, { ...opts, contentType: "image/jpeg" }); } catch {} }
+      let th = null;
+      if (job.thumb) { try { th = await mod.upload(`thumbs/${stamp}_${id}.jpg`, job.thumb, { ...opts, contentType: "image/jpeg" }); } catch {} }
+      // 올린 파일을 목록에 바로 등록 (실패해도 파일은 저장돼 있어요)
+      try {
+        await fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
+          pw: adminPw, action: "add",
+          media: { pathname: up.pathname, url: up.url, size: job.file.size },
+          thumb: th ? { pathname: th.pathname, url: th.url } : null,
+        }) });
+      } catch {}
       job.status = "done"; st.textContent = "완료"; st.classList.add("ok"); bar.style.width = "100%"; ok++;
       job.li.querySelector(".rm").hidden = true;
     } catch (e) {
