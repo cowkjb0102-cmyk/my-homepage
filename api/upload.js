@@ -3,7 +3,7 @@
 import { handleUpload } from "@vercel/blob/client";
 import { isAdmin, adminConfigured, json } from "./_auth.js";
 import { tooManyFails, noteFail, LOCKED_MSG } from "./_guard.js";
-import { MEDIA_RE, THUMB_RE } from "./_paths.js";
+import { MEDIA_RE, THUMB_RE, ARCHIVE_TYPES, archiveOk } from "./_paths.js";
 
 const MAX_MEDIA = 500 * 1024 * 1024; // 파일 하나 최대 500MB
 const MAX_THUMB = 2 * 1024 * 1024;
@@ -27,7 +27,13 @@ export async function POST(request) {
         if (THUMB_RE.test(pathname)) {
           return { allowedContentTypes: ["image/jpeg"], maximumSizeInBytes: MAX_THUMB, addRandomSuffix: false };
         }
-        if (MEDIA_RE.test(pathname)) {
+        // 기타(압축 파일): 정해진 확장자만, 그 확장자에 맞는 파일 종류로만 받아요
+        const m = MEDIA_RE.exec(pathname);
+        if (m && m[4] === "f") {
+          if (!archiveOk(pathname)) throw new Error("BAD_PATH");
+          return { allowedContentTypes: [ARCHIVE_TYPES[m[5]]], maximumSizeInBytes: MAX_MEDIA, addRandomSuffix: false };
+        }
+        if (m) {
           return { allowedContentTypes: ["image/*", "video/*", "audio/*"], maximumSizeInBytes: MAX_MEDIA, addRandomSuffix: false };
         }
         throw new Error("BAD_PATH");

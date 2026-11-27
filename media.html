@@ -58,6 +58,14 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 .aplayer audio{width:100%}
 .q .th.aud-th{display:flex;align-items:center;justify-content:center;color:var(--accent);background:var(--chip)}
 .q .th.aud-th svg{width:26px;height:26px}
+.zplayer{display:flex;flex-direction:column;align-items:center;gap:14px;width:min(calc(100% - 112px),460px);text-align:center;color:#e0b48f}
+.zplayer .note{width:96px;height:96px}
+.zplayer small{color:#b9aca1;font-size:13px}
+.zdown{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:999px;background:#e0b48f;color:#2b211c;font-weight:700;text-decoration:none}
+.zdown:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.zdown[disabled]{opacity:.6;cursor:wait}
+button.zdown{border:0;cursor:pointer;font:inherit;font-weight:700}
+.znote{margin:0;color:#b9aca1;font-size:14px;line-height:1.6}
 @media (max-width:720px){.aud{gap:4px;padding:8px 6px 24px}.aud-nm{font-size:11.5px}}
 .empty,.msg{text-align:center;color:var(--muted);padding:72px 16px}
 .empty h2{font:700 22px/1.4 "Gowun Batang",serif;color:var(--ink);margin:0 0 8px}
@@ -151,6 +159,7 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
     <button class="chip" type="button" data-f="photo" aria-pressed="false">사진</button>
     <button class="chip" type="button" data-f="video" aria-pressed="false">동영상</button>
     <button class="chip" type="button" data-f="audio" aria-pressed="false">음악</button>
+    <button class="chip" type="button" data-f="file" aria-pressed="false">기타</button>
     <select id="jump" aria-label="날짜로 이동"></select>
   </div>
 
@@ -176,7 +185,7 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
 <!-- 올리기 창 -->
 <div class="ov" id="ov">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="upTitle">
-    <h2 id="upTitle">사진·동영상·음악 올리기</h2>
+    <h2 id="upTitle">사진·동영상·음악·압축 파일 올리기</h2>
     <div id="upLogin">
       <p class="hint">올리기와 지우기는 관리자 비밀번호가 있어야 할 수 있어요.</p>
       <label class="sr" for="adminPw">관리자 비밀번호</label>
@@ -185,12 +194,12 @@ h1{font:700 clamp(30px,4.4vw,44px)/1.2 "Gowun Batang",serif;letter-spacing:-.02e
       <div class="acts"><button class="btn" type="button" data-close>닫기</button><button class="btn pri" type="button" id="loginGo">확인</button></div>
     </div>
     <div id="upMain" hidden>
-      <p class="hint">찍은 날짜는 사진 정보나 파일 이름에서 자동으로 찾아요(음악은 파일 날짜). 틀리면 고쳐 주세요.</p>
+      <p class="hint">찍은 날짜는 사진 정보나 파일 이름에서 자동으로 찾아요(음악·압축 파일은 파일 날짜). 압축 파일은 기타에 모여요. 틀리면 고쳐 주세요.</p>
       <label class="pick" id="pick">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 8"/></svg>
-        <b>사진·동영상·음악 고르기</b>
-        <span>여러 개를 한 번에 고를 수 있어요 · 음악은 mp3, m4a 등 · 한 파일 최대 500MB</span>
-        <input type="file" id="files" accept="image/*,video/*,audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" multiple class="sr">
+        <b>사진·동영상·음악·압축 파일 고르기</b>
+        <span>여러 개를 한 번에 고를 수 있어요 · 음악은 mp3, m4a 등 · 압축 파일은 zip, 7z, rar, alz, egg 등 · 한 파일 최대 500MB</span>
+        <input type="file" id="files" accept="image/*,video/*,audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.zip,.7z,.rar,.alz,.egg,.tar,.gz,.tgz" multiple class="sr">
       </label>
       <ul class="q" id="q"></ul>
       <p class="err" id="upErr"></p>
@@ -212,7 +221,14 @@ const WD = ["일", "월", "화", "수", "목", "금", "토"];
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 const ICON_NOTE = '<svg class="note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
 const ICON_NOTE_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
-const KIND = { photo: "사진", video: "동영상", audio: "음악" };
+const KIND = { photo: "사진", video: "동영상", audio: "음악", file: "압축 파일" };
+const CHIP = { ...KIND, file: "기타" };
+const ICON_ZIP = '<svg class="note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M10 3v2M10 7v2M10 11v2"/><rect x="8.5" y="14" width="3" height="4" rx="1"/></svg>';
+// 압축 파일 확장자 → 저장할 파일 종류 (서버 api/_paths.js 와 같아야 해요)
+const ARCHIVE = { zip: "application/zip", "7z": "application/x-7z-compressed", rar: "application/vnd.rar", alz: "application/octet-stream", egg: "application/octet-stream", tar: "application/x-tar", gz: "application/gzip", tgz: "application/gzip" };
+const archiveExt = (name) => { const m = /.([a-z0-9]{1,5})$/i.exec(name); const e = m && m[1].toLowerCase(); return e && Object.hasOwn(ARCHIVE, e) ? e : null; };
+const fileLabel = (it) => (it.name || "압축 파일") + "." + (it.ext || (/.([a-z0-9]{1,5})$/i.exec(it.url || "") || [, "zip"])[1]);
+const mb = (n) => (n / 1048576).toFixed(1) + "MB";
 const AUDIO_EXT = /\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|wma|amr)$/i;
 
 let items = [], shown = [], filter = "all", cur = -1;
@@ -259,9 +275,9 @@ function showLock(wrong) {
 }
 
 function render() {
-  const cnt = { all: items.length, photo: 0, video: 0, audio: 0 };
+  const cnt = { all: items.length, photo: 0, video: 0, audio: 0, file: 0 };
   items.forEach((i) => { cnt[i.type] = (cnt[i.type] || 0) + 1; });
-  $("#sum").textContent = items.length ? `사진 ${cnt.photo}장 · 동영상 ${cnt.video}개 · 음악 ${cnt.audio}곡` : "";
+  $("#sum").textContent = items.length ? `사진 ${cnt.photo}장 · 동영상 ${cnt.video}개 · 음악 ${cnt.audio}곡` + (cnt.file ? ` · 기타 ${cnt.file}개` : "") : "";
   shown = items.filter((i) => filter === "all" || i.type === filter);
   const lib = $("#lib");
   if (!items.length) {
@@ -295,6 +311,12 @@ function render() {
         (it.duration != null ? `<span class="badge">${ICON_NOTE_SM}${dur(it.duration)}</span>` : "") + `</button>`;
       return;
     }
+    if (it.type === "file") {
+      html += `<button class="tile audio" type="button" data-i="${i}" aria-label="${alt} 보기">` +
+        `<span class="aud">${ICON_ZIP}<span class="aud-nm">${esc(fileLabel(it))}</span></span>` +
+        `<span class="badge">${mb(it.size)}</span></button>`;
+      return;
+    }
     const src = it.thumb || (it.type === "photo" ? it.url : "");
     html += `<button class="tile" type="button" data-i="${i}" aria-label="${alt} 크게 보기">` +
       (src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async">` : `<span class="ph">${it.type === "video" ? "VIDEO" : "PHOTO"}</span>`) +
@@ -305,12 +327,36 @@ function render() {
   $("#jump").innerHTML = `<option value="">날짜로 이동</option>` + jump;
   document.querySelectorAll(".chip").forEach((c) => {
     const f = c.dataset.f;
-    c.textContent = `${f === "all" ? "전체" : KIND[f]} ${cnt[f] || 0}`;
+    c.textContent = `${f === "all" ? "전체" : CHIP[f]} ${cnt[f] || 0}`;
     c.setAttribute("aria-pressed", String(f === filter));
   });
 }
 
-$("#lib").addEventListener("click", (e) => { const t = e.target.closest(".tile"); if (t) openLb(+t.dataset.i); });
+$("#lib").addEventListener("click", (e) => {
+  const t = e.target.closest(".tile"); if (!t) return;
+  const it = shown[+t.dataset.i];
+  if (it && it.type === "file" && adminPw) downloadFile(it); else openLb(+t.dataset.i);
+});
+
+// 압축 파일 받기 (관리자만): 서버에서 받는 주소를 받아 바로 내려받아요
+async function downloadFile(it, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = "준비 중…"; }
+  try {
+    const r = await fetch("/api/media", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pw: adminPw, action: "fileurl", id: it.id }) });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401) { adminPw = null; store.set("sessionStorage", "ml_admin", null); }
+    if (!r.ok || !d.url) throw new Error(d.error || "받지 못했어요.");
+    const a = document.createElement("a");
+    a.href = d.url + (d.url.includes("?") ? "&" : "?") + "download=1";
+    a.download = fileLabel(it);
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) {
+    alert(e.message || "받지 못했어요.");
+    if (!adminPw && lb.classList.contains("on")) show(cur);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "받기"; }
+  }
+}
 $("#bar").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (c) { filter = c.dataset.f; render(); } });
 $("#jump").addEventListener("change", (e) => { const el = document.getElementById("m-" + e.target.value); if (el) el.scrollIntoView({ behavior: "smooth" }); e.target.value = ""; });
 
@@ -318,7 +364,7 @@ $("#jump").addEventListener("change", (e) => { const el = document.getElementByI
 const lb = $("#lb"), stage = $("#lbStage");
 let lastFocus = null;
 function openLb(i) { lastFocus = document.activeElement; lb.classList.add("on"); document.body.style.overflow = "hidden"; show(i); $("#lbClose").focus(); }
-const MEDIA_SEL = "img,video,.aplayer";
+const MEDIA_SEL = "img,video,.aplayer,.zplayer";
 function closeLb() { lb.classList.remove("on"); document.body.style.overflow = ""; stage.querySelectorAll(MEDIA_SEL).forEach((n) => n.remove()); if (lastFocus) lastFocus.focus(); }
 function show(i) {
   if (i < 0 || i >= shown.length) return;
@@ -333,6 +379,15 @@ function show(i) {
     a.src = it.url; a.controls = true; a.preload = "metadata";
     a.setAttribute("aria-label", (it.name || "음악") + " 재생");
     el.appendChild(a);
+  } else if (it.type === "file") {
+    el = document.createElement("div"); el.className = "zplayer";
+    el.innerHTML = `${ICON_ZIP}<p class="ap-nm"></p><small></small>` + (adminPw
+      ? `<button class="zdown" type="button">받기</button>`
+      : `<p class="znote">압축 파일은 관리자만 받을 수 있어요.</p><button class="zdown" type="button">관리자 로그인</button>`);
+    el.querySelector(".ap-nm").textContent = fileLabel(it);
+    el.querySelector("small").textContent = "압축 파일 · " + mb(it.size);
+    const zb = el.querySelector(".zdown");
+    zb.onclick = adminPw ? () => downloadFile(it, zb) : () => { closeLb(); openUpload(); };
   } else if (it.type === "video") {
     el = document.createElement("video");
     el.src = it.url; el.controls = true; el.playsInline = true; el.preload = "metadata";
@@ -344,7 +399,8 @@ function show(i) {
   }
   stage.prepend(el);
   $("#lbCap").innerHTML = `${dt.getFullYear()}년 ${dt.getMonth() + 1}월 ${dt.getDate()}일 ${WD[dt.getDay()]}요일<small>${pad(dt.getHours())}:${pad(dt.getMinutes())} · ${(it.size / 1048576).toFixed(1)}MB</small>`;
-  $("#lbDown").href = it.url + (it.url.includes("?") ? "&" : "?") + "download=1";
+  $("#lbDown").hidden = !it.url;
+  if (it.url) $("#lbDown").href = it.url + (it.url.includes("?") ? "&" : "?") + "download=1";
   $("#lbDel").hidden = !adminPw;
   const bb = $("#lbBgm"), isBgm = it.id === bgmId;
   bb.hidden = !(adminPw && it.type === "audio");
@@ -364,7 +420,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowRight") show(cur + 1);
 });
 let sx = null, sy = 0;
-stage.addEventListener("pointerdown", (e) => { if (!e.target.closest("video,audio")) { sx = e.clientX; sy = e.clientY; } });
+stage.addEventListener("pointerdown", (e) => { if (!e.target.closest("video,audio,a,button")) { sx = e.clientX; sy = e.clientY; } });
 stage.addEventListener("pointerup", (e) => {
   if (sx == null) return;
   const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
@@ -507,11 +563,12 @@ function audioLength(file) {
 async function addFiles(list) {
   $("#upErr").textContent = "";
   for (const file of list) {
-    const isA = file.type.startsWith("audio/") || (!file.type && AUDIO_EXT.test(file.name));
-    const isV = !isA && file.type.startsWith("video/"), isP = file.type.startsWith("image/");
-    if (!isV && !isP && !isA) { $("#upErr").textContent = `${file.name}: 사진, 동영상, 음악 파일만 올릴 수 있어요.`; continue; }
+    const isZ = !!archiveExt(file.name);
+    const isA = !isZ && (file.type.startsWith("audio/") || (!file.type && AUDIO_EXT.test(file.name)));
+    const isV = !isZ && !isA && file.type.startsWith("video/"), isP = !isZ && file.type.startsWith("image/");
+    if (!isV && !isP && !isA && !isZ) { $("#upErr").textContent = `${file.name}: 사진, 동영상, 음악, 압축 파일(zip 등)만 올릴 수 있어요.`; continue; }
     if (file.size > 500 * 1024 * 1024) { $("#upErr").textContent = `${file.name}: 500MB보다 커서 올릴 수 없어요.`; continue; }
-    const job = { file, type: isA ? "audio" : isV ? "video" : "photo", status: "ready", thumb: null, duration: null, date: null };
+    const job = { file, type: isZ ? "file" : isA ? "audio" : isV ? "video" : "photo", status: "ready", thumb: null, duration: null, date: null };
     const li = document.createElement("li");
     li.innerHTML = `<div class="th"></div><div style="min-width:0"><div class="nm"></div><input type="datetime-local" step="1" aria-label="찍은 날짜"><div class="prog"><i></i></div></div><div><div class="st">준비 중</div><button class="rm" type="button">빼기</button></div>`;
     li.querySelector(".nm").textContent = file.name;
@@ -522,12 +579,13 @@ async function addFiles(list) {
     (async () => {
       job.date = (await dateFromExif(file)) || dateFromName(file.name) || new Date(file.lastModified || Date.now());
       input.value = toLocalInput(job.date);
-      if (isA) { job.duration = await audioLength(file); li.querySelector(".th").innerHTML = ICON_NOTE; li.querySelector(".th").classList.add("aud-th"); }
+      if (isZ) { const th = li.querySelector(".th"); th.innerHTML = ICON_ZIP; th.classList.add("aud-th"); }
+      else if (isA) { job.duration = await audioLength(file); li.querySelector(".th").innerHTML = ICON_NOTE; li.querySelector(".th").classList.add("aud-th"); }
       else if (isV) { const r = await videoThumb(file); job.thumb = r.blob; job.duration = r.duration; }
       else job.thumb = await imageThumb(file);
       if (job.thumb) li.querySelector(".th").style.backgroundImage = `url(${URL.createObjectURL(job.thumb)})`;
       job.prepared = true;
-      if (job.status === "ready") li.querySelector(".st").textContent = job.type === "photo" ? "사진" : `${KIND[job.type]} ${dur(job.duration)}`;
+      if (job.status === "ready") li.querySelector(".st").textContent = job.type === "photo" ? "사진" : job.type === "file" ? "압축 파일" : `${KIND[job.type]} ${dur(job.duration)}`;
       syncGo();
     })();
   }
@@ -557,11 +615,11 @@ async function uploadAll() {
     job.status = "busy"; st.className = "st"; st.textContent = "0%";
     const d = job.date || new Date();
     const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-    const id = rid(), kind = job.type === "photo" ? "p" : (job.type === "video" ? "v" : "a") + (job.duration ?? "");
+    const id = rid(), kind = job.type === "photo" ? "p" : job.type === "file" ? "f" : (job.type === "video" ? "v" : "a") + (job.duration ?? "");
     const opts = { access: "public", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ pw: adminPw }) };
     try {
       const up = await mod.upload(`media/${stamp}_${id}_${kind}.${extOf(job.file)}`, job.file, {
-        ...opts, contentType: job.file.type || undefined, multipart: job.file.size > 50 * 1024 * 1024,
+        ...opts, contentType: job.type === "file" ? ARCHIVE[archiveExt(job.file.name)] : job.file.type || undefined, multipart: job.file.size > 50 * 1024 * 1024,
         onUploadProgress: (p) => { bar.style.width = p.percentage + "%"; st.textContent = Math.round(p.percentage) + "%"; },
       });
       let th = null;

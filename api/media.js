@@ -4,7 +4,7 @@
 import { list, del } from "@vercel/blob";
 import { isAdmin, adminConfigured, canView, json } from "./_auth.js";
 import { tooManyFails, noteFail, LOCKED_MSG } from "./_guard.js";
-import { MEDIA_RE, THUMB_RE } from "./_paths.js";
+import { MEDIA_RE, THUMB_RE, archiveOk } from "./_paths.js";
 import { redis, redisReady } from "./_redis.js";
 
 const KEY = "media:items"; // 해시: id → 항목 JSON
@@ -23,12 +23,12 @@ async function listAll(prefix) {
 
 function itemFrom(pathname, url, size, thumb) {
   const m = MEDIA_RE.exec(pathname);
-  if (!m) return null;
+  if (!m || (m[4] === "f" && !archiveOk(pathname))) return null;
   const [, d, t, id, kind] = m;
   return {
     id,
     taken: `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4)}`,
-    type: kind[0] === "v" ? "video" : kind[0] === "a" ? "audio" : "photo",
+    type: kind[0] === "v" ? "video" : kind[0] === "a" ? "audio" : kind === "f" ? "file" : "photo",
     duration: kind.length > 1 ? Number(kind.slice(1)) : null,
     url,
     thumb: thumb || null,
@@ -118,7 +118,11 @@ export async function GET(request) {
   try {
     const items = redisReady() ? await readIndex() : await scanBlob();
     items.sort(newestFirst);
-    return json({ items, viewLock: !!process.env.VIEW_PASSWORD });
+    // 기타(압축 파일)는 관리자만 받을 수 있어요: 목록에는 파일 주소를 빼고 보내요
+    const out = items.map((it) => it.type === "file"
+      ? { ...it, url: null, ext: (/\.([a-z0-9]{1,5})$/.exec(it.url || "") || [])[1] || "zip" }
+      : it);
+    return json({ items: out, viewLock: !!process.env.VIEW_PASSWORD });
   } catch {
     return json({ error: "목록을 불러오지 못했어요." }, 500);
   }
@@ -148,6 +152,14 @@ export async function POST(request) {
       await redis([["SET", BGM, id]]);
       return json({ ok: true, bgm: { id, name: it.name || "배경음악" } });
     }
+    if (body.action === "fileurl") {
+      // 관리자에게만 압축 파일 받는 주소를 알려줘요
+      if (!/^[a-z0-9]{12}$/.test(String(body.id || ""))) return json({ error: "잘못된 요청이에요." }, 400);
+      const [raw] = await redis([["HGET", KEY, body.id]]);
+      const it = raw && JSON.parse(raw);
+      if (!it || it.type !== "file") return json({ error: "파일을 찾지 못했어요." }, 404);
+      return json({ ok: true, url: it.url });
+    }
     if (body.action === "rebuild") {
       const items = await rebuildIndex();
       return json({ ok: true, count: items.length });
@@ -158,6 +170,7 @@ export async function POST(request) {
       let thumb = null;
       if (t && THUMB_RE.test(t.pathname || "") && blobUrlOk(t.url, t.pathname)) thumb = t.url;
       const it = itemFrom(m.pathname, m.url, m.size, thumb);
+      if (!it) return json({ error: "잘못된 요청이에요." }, 400);
       if (thumb && !t.pathname.includes(`_${it.id}.`)) it.thumb = null;
       // 원래 파일 이름 (음악 제목 표시용). 확장자 빼고, 이상한 글자 없이 100자까지만
       const name = String(body.name || "").replace(/\.[a-z0-9]{1,5}$/i, "").replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 100);
