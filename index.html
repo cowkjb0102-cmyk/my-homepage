@@ -38,8 +38,9 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 @media (prefers-reduced-motion:reduce){.slide{transform:none;transition:opacity 1.2s ease}}
 
 /* 오늘의 속보: 한 줄씩 위로 올라가는 띠 */
-.news{max-width:1080px;margin:-48px auto 40px;padding:0 20px}
-.news[hidden]{display:none}
+.today{max-width:1080px;margin:-48px auto 40px;padding:0 20px;display:grid;gap:14px}
+.today>*{min-width:0}
+.today[hidden],.news[hidden],.wx[hidden]{display:none}
 .news-in{display:flex;align-items:center;gap:16px;padding:12px 18px;border:1px solid var(--line);border-radius:999px;background:var(--paper)}
 .news-label{flex:none;display:flex;align-items:center;gap:8px;font:700 14px/1 "Noto Sans KR",sans-serif;color:var(--accent);padding-right:16px;border-right:1px solid var(--line)}
 .news-dot{width:8px;height:8px;border-radius:50%;background:#D2463C;animation:blink 1.6s ease-in-out infinite}
@@ -52,6 +53,18 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 .news-list .tag{flex:none;font-size:12px;font-weight:700;color:#fff;background:#D2463C;padding:2px 8px;border-radius:6px;line-height:1.5}
 .news-list time{flex:none;font-size:13px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.news-list{transition:none}.news-dot{animation:none}}
+
+/* 오늘의 날씨: 세 지역 카드 */
+.wx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.wx-card{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"place place" "icon temp" "meta meta";align-items:center;gap:4px 12px;padding:16px 20px;border:1px solid var(--line);border-radius:20px;background:var(--paper)}
+.wx-place{grid-area:place;font:700 16px/1.4 "Gowun Batang",serif}
+.wx-icon{grid-area:icon;font-size:34px;line-height:1}
+.wx-temp{grid-area:temp;font:700 30px/1 "Noto Sans KR",sans-serif;letter-spacing:-.02em}
+.wx-temp small{display:block;margin-top:4px;font:400 13px/1.2 "Noto Sans KR",sans-serif;color:var(--muted);letter-spacing:0}
+.wx-meta{grid-area:meta;margin-top:6px;font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px}
+.wx-meta .hi{color:#C2553F}.wx-meta .lo{color:#3E6FB0}
+:root[data-theme="dark"] .wx-meta .hi{color:#F08C74}:root[data-theme="dark"] .wx-meta .lo{color:#8DB4F0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wx-meta .hi{color:#F08C74}:root:not([data-theme="light"]) .wx-meta .lo{color:#8DB4F0}}
 
 .body{background:var(--paper);border-top:1px solid var(--line)}
 .body-in{max-width:1080px;margin:0 auto;padding:24px 20px 96px}
@@ -78,7 +91,14 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
   .slide.first{object-position:50% 88%}
   .photo::before{display:none}
   .body-in{padding:8px 16px 72px}
-  .news{margin:-24px auto 28px;padding:0 16px}
+  .today{margin:-24px auto 28px;padding:0 16px;gap:10px}
+  .wx{gap:8px}
+  .wx-card{grid-template-columns:1fr;grid-template-areas:"place" "icon" "temp" "meta";justify-items:center;text-align:center;padding:12px 6px;border-radius:16px;gap:4px}
+  .wx-place{font-size:14px}
+  .wx-icon{font-size:28px}
+  .wx-temp{font-size:24px}
+  .wx-meta{justify-content:center;font-size:12px;margin-top:2px}
+  .wx-meta .rain{flex-basis:100%}
   .news-in{gap:12px;padding:10px 14px;border-radius:16px}
   .news-label{padding-right:12px;font-size:13px}
   .news-list a{font-size:14.5px}
@@ -125,13 +145,16 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
     </figure>
   </div>
 
-  <div class="news" id="news" hidden>
-    <div class="news-in">
-      <span class="news-label"><i class="news-dot" aria-hidden="true"></i>오늘의 속보</span>
-      <div class="news-win" aria-live="off">
-        <ul class="news-list" id="news-list"></ul>
+  <div class="today" id="today" hidden>
+    <div class="news" id="news" hidden>
+      <div class="news-in">
+        <span class="news-label"><i class="news-dot" aria-hidden="true"></i>오늘의 속보</span>
+        <div class="news-win" aria-live="off">
+          <ul class="news-list" id="news-list"></ul>
+        </div>
       </div>
     </div>
+    <div class="wx" id="wx" aria-label="오늘의 날씨" hidden></div>
   </div>
 
   <div class="body"><div class="body-in">
@@ -199,7 +222,7 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
       var tm=document.createElement("time"); tm.textContent=ago(x.time); li.appendChild(tm);
       list.appendChild(li);
     });
-    n=items.length; box.hidden=false;
+    n=items.length; box.hidden=false; document.getElementById("today").hidden=false;
   }
   function step(){
     if(n<2)return;
@@ -217,6 +240,33 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
     }).catch(function(){});
   }
   load(); setInterval(load,10*60*1000); // 10분마다 새 기사로 바꿔요
+})();
+
+// 오늘의 날씨: 광주 동구, 당진 합덕읍, 예산 응봉면 (15분마다 새로 받아와요)
+(function(){
+  var wx=document.getElementById("wx");
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function render(items){
+    wx.innerHTML="";
+    items.forEach(function(x){
+      var c=el("div","wx-card"); c.setAttribute("role","group");
+      c.setAttribute("aria-label",x.name+" "+x.text+" "+x.temp+"도");
+      c.appendChild(el("div","wx-place",x.name));
+      c.appendChild(el("div","wx-icon",x.icon)).setAttribute("aria-hidden","true");
+      var t=el("div","wx-temp",x.temp+"°"); t.appendChild(el("small",null,x.text)); c.appendChild(t);
+      var m=el("div","wx-meta");
+      m.appendChild(el("span","hi","최고 "+x.max+"°")); m.appendChild(el("span","lo","최저 "+x.min+"°"));
+      if(x.rain!=null)m.appendChild(el("span","rain","강수 "+x.rain+"%"));
+      c.appendChild(m); wx.appendChild(c);
+    });
+    wx.hidden=false; document.getElementById("today").hidden=false;
+  }
+  function load(){
+    fetch("/api/weather").then(function(r){return r.ok?r.json():null}).then(function(d){
+      if(d&&d.items&&d.items.length)render(d.items);
+    }).catch(function(){});
+  }
+  load(); setInterval(load,15*60*1000);
 })();
 </script>
 </body>
