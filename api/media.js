@@ -3,6 +3,7 @@
 // (Redis가 없을 때만 저장소를 직접 훑어서 목록을 만들어요.)
 import { list, del } from "@vercel/blob";
 import { isAdmin, adminConfigured, canView, json } from "./_auth.js";
+import { tooManyFails, noteFail, LOCKED_MSG } from "./_guard.js";
 import { MEDIA_RE, THUMB_RE } from "./_paths.js";
 import { redis, redisReady } from "./_redis.js";
 
@@ -106,7 +107,12 @@ export async function GET(request) {
       return json({ bgm: null });
     }
   }
-  if (!canView(request.headers.get("x-view-password"))) {
+  const vpw = request.headers.get("x-view-password");
+  if (!canView(vpw)) {
+    if (vpw) {
+      if (await tooManyFails(request)) return json({ error: LOCKED_MSG }, 429);
+      await noteFail(request);
+    }
     return json({ locked: true, error: "보기 비밀번호가 필요해요." }, 401);
   }
   try {
@@ -126,7 +132,8 @@ export async function POST(request) {
   let body = {};
   try { body = await request.json(); } catch {}
   if (!adminConfigured()) return json({ ok: false, error: "관리자 비밀번호가 아직 설정되지 않았어요." }, 503);
-  if (!isAdmin(body.pw)) return json({ ok: false, error: "비밀번호가 맞지 않아요." }, 401);
+  if (await tooManyFails(request)) return json({ ok: false, error: LOCKED_MSG }, 429);
+  if (!isAdmin(body.pw)) { await noteFail(request); return json({ ok: false, error: "비밀번호가 맞지 않아요." }, 401); }
   if (!body.action) return json({ ok: true });
   if (!redisReady()) return json({ ok: true, skipped: true });
 
@@ -168,7 +175,8 @@ export async function POST(request) {
 export async function DELETE(request) {
   let body = {};
   try { body = await request.json(); } catch {}
-  if (!isAdmin(body.pw)) return json({ error: "비밀번호가 맞지 않아요." }, 401);
+  if (await tooManyFails(request)) return json({ error: LOCKED_MSG }, 429);
+  if (!isAdmin(body.pw)) { await noteFail(request); return json({ error: "비밀번호가 맞지 않아요." }, 401); }
   if (!/^[a-z0-9]{12}$/.test(body.id || "")) return json({ error: "잘못된 요청이에요." }, 400);
   try {
     let urls = [];

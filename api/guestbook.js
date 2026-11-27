@@ -2,11 +2,12 @@
 // 저장: Upstash Redis (방문자 수와 같은 저장소)
 //   gb:items  (hash)  id → 글 JSON
 //   gb:order  (zset)  id → 쓴 시각(정렬용)
-// 도배 방지: 같은 사람은 1분에 한 번, 하루 10번까지. 관리자 비밀번호는 15분에 10번까지만 틀릴 수 있어요.
+// 도배 방지: 같은 사람은 1분에 한 번, 하루 10번까지. 관리자 비밀번호는 15분에 10번까지만 틀릴 수 있어요(_guard.js).
 // IP는 저장하지 않고, 알아볼 수 없게 바꾼 값만 씁니다. 이 값은 1분~하루 뒤 자동으로 지워져요.
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { json, isAdmin } from "./_auth.js";
 import { redis, redisReady } from "./_redis.js";
+import { clientKey, tooManyFails, noteFail, LOCKED_MSG } from "./_guard.js";
 
 const MAX_NAME = 20;
 const MAX_TEXT = 500;
@@ -29,12 +30,7 @@ function today() {
 }
 
 // 방문자 IP → 알아볼 수 없는 짧은 값 (원래 IP는 저장하지 않아요)
-function who(request) {
-  const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim()
-    || request.headers.get("x-real-ip") || "unknown";
-  const salt = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
-  return createHash("sha256").update(salt + "|gb|" + ip).digest("hex").slice(0, 24);
-}
+const who = (request) => clientKey(request, "gb");
 
 const parse = (raw) => { try { return JSON.parse(raw); } catch { return null; } };
 
@@ -65,12 +61,10 @@ export async function POST(request) {
   try {
     // ── 관리자 기능 ──────────────────────────────
     if (body.action === "login" || body.action === "reply" || body.action === "delete") {
-      // 비밀번호 마구 넣어보기 막기: 15분 동안 10번 틀리면 잠시 잠가요
-      const fail = `gb:fail:${who(request)}`;
-      const tries = Number((await redis([["GET", fail]]))[0]) || 0;
-      if (tries >= 10) return json({ error: "비밀번호를 여러 번 틀렸어요. 15분 뒤에 다시 시도해 주세요." }, 429);
+      // 비밀번호 마구 넣어보기 막기 (미디어 라이브러리와 같은 횟수를 함께 세요)
+      if (await tooManyFails(request)) return json({ error: LOCKED_MSG }, 429);
       if (!isAdmin(body.pw)) {
-        await redis([["INCR", fail], ["EXPIRE", fail, 15 * 60]]);
+        await noteFail(request);
         return json({ error: "관리자 비밀번호가 맞지 않아요." }, 401);
       }
       if (body.action === "login") return json({ ok: true });
