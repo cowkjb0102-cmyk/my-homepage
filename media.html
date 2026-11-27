@@ -112,6 +112,10 @@ button.zdown{border:0;cursor:pointer;font:inherit;font-weight:700}
 .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--line);border-radius:14px;padding:26px 12px;text-align:center;color:var(--muted);cursor:pointer;font-size:14px}
 .pick b{color:var(--ink);font-size:16px}
 .pick.drag{border-color:var(--accent);background:var(--chip)}
+.pick2{display:flex;align-items:center;gap:10px;margin-top:8px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--muted);font-size:13px;cursor:pointer}
+.pick2 b{color:var(--ink);font-size:14px}
+.pick2 svg{flex:none;color:var(--accent)}
+.pick2:focus-within{outline:3px solid var(--accent);outline-offset:2px}
 .q{list-style:none;margin:14px 0 0;padding:0}
 .q li{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .q .th{width:56px;height:56px;border-radius:8px;background:var(--tile) center/cover no-repeat;position:relative}
@@ -200,6 +204,11 @@ button.zdown{border:0;cursor:pointer;font:inherit;font-weight:700}
         <b>사진·동영상·음악·압축 파일 고르기</b>
         <span>여러 개를 한 번에 고를 수 있어요 · 음악은 mp3, m4a 등 · 압축 파일은 zip, 7z, rar, alz, egg 등 · 한 파일 최대 500MB</span>
         <input type="file" id="files" accept="image/*,video/*,audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.zip,.7z,.rar,.alz,.egg,.tar,.gz,.tgz" multiple class="sr">
+      </label>
+      <label class="pick2" id="pickZip">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M10 3v2M10 7v2M10 11v2"/></svg>
+        <span><b>압축 파일(zip) 고르기</b> · 휴대폰에서 압축 파일이 안 보이면 여기를 눌러요</span>
+        <input type="file" id="zipFiles" accept=".zip,.7z,.rar,.alz,.egg,.tar,.gz,.tgz,application/zip,application/x-zip-compressed,application/x-7z-compressed,application/vnd.rar,application/x-rar-compressed,application/gzip,application/x-tar,application/octet-stream" multiple class="sr">
       </label>
       <ul class="q" id="q"></ul>
       <p class="err" id="upErr"></p>
@@ -598,6 +607,7 @@ function syncGo() {
   $("#upGo").textContent = busy ? "올리는 중…" : n ? `${n}개 올리기` : "올리기";
 }
 $("#files").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
+$("#zipFiles").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
 const pick = $("#pick");
 ["dragenter", "dragover"].forEach((t) => pick.addEventListener(t, (e) => { e.preventDefault(); pick.classList.add("drag"); }));
 ["dragleave", "drop"].forEach((t) => pick.addEventListener(t, (e) => { e.preventDefault(); pick.classList.remove("drag"); }));
