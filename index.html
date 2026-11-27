@@ -55,7 +55,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius
 @media (prefers-reduced-motion:reduce){.news-list{transition:none}.news-dot{animation:none}}
 
 /* 오늘의 날씨: 세 지역 카드 */
-.wx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.wx{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .wx-card{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"place place" "icon temp" "meta meta";align-items:center;gap:4px 12px;padding:16px 20px;border:1px solid var(--line);border-radius:20px;background:var(--paper)}
 .wx-place{grid-area:place;font:700 16px/1.4 "Gowun Batang",serif}
 .wx-icon{grid-area:icon;font-size:34px;line-height:1}
@@ -92,7 +92,7 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
   .photo::before{display:none}
   .body-in{padding:8px 16px 72px}
   .today{margin:-24px auto 28px;padding:0 16px;gap:10px}
-  .wx{gap:8px}
+  .wx{gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
   .wx-card{grid-template-columns:1fr;grid-template-areas:"place" "icon" "temp" "meta";justify-items:center;text-align:center;padding:12px 6px;border-radius:16px;gap:4px}
   .wx-place{font-size:14px}
   .wx-icon{font-size:28px}
@@ -242,7 +242,7 @@ li{background:var(--chip);padding:4px 16px;border-radius:999px;font-size:15px}
   load(); setInterval(load,10*60*1000); // 10분마다 새 기사로 바꿔요
 })();
 
-// 오늘의 날씨: 광주 동구, 당진 합덕읍, 예산 응봉면 (15분마다 새로 받아와요)
+// 오늘의 날씨: 광주 동구, 당진 합덕읍, 예산 응봉면, 서울 은평구 (15분마다 새로 받아와요)
 (function(){
   var wx=document.getElementById("wx");
   function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
