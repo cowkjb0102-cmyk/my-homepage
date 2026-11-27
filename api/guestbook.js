@@ -91,9 +91,9 @@ export async function POST(request) {
     // ── 방문자 글쓰기 ────────────────────────────
     if (body.action !== "write") return json({ error: "잘못된 요청이에요." }, 400);
 
-    // 스팸 로봇 거르기: 숨겨진 칸이 채워져 있거나, 화면을 연 지 3초도 안 돼서 보내면 무시
-    if (body.website || (typeof body.openedFor === "number" && body.openedFor < 3000)) {
-      return json({ ok: true, ignored: true });
+    // 스팸 로봇 거르기: 화면을 연 지 3초도 안 돼서 보내면 받지 않아요 (사람이라면 다시 누르면 돼요)
+    if (typeof body.openedFor !== "number" || body.openedFor < 3000) {
+      return json({ error: "조금 천천히, 한 번만 더 눌러 주세요." }, 400);
     }
 
     const name = clean(body.name, MAX_NAME, false);

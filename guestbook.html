@@ -41,7 +41,6 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
 .msg{min-height:1.5em;margin:8px 2px 0;font-size:14px;color:var(--muted)}
 .msg.err{color:var(--err)}
 .note{margin:4px 2px 0;font-size:13px;color:var(--muted)}
-.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 .list-head{display:flex;align-items:baseline;gap:10px;margin:40px 2px 14px}
 .list-head h2{font:700 20px/1.4 "Gowun Batang",serif;margin:0}
@@ -62,6 +61,7 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
 .reply-form .tools{margin-top:8px}
 .empty{text-align:center;color:var(--muted);padding:32px 0}
 
+.admin[hidden],.admin [hidden]{display:none}
 .admin{margin-top:48px;text-align:center;font-size:14px;color:var(--muted)}
 .admin button.link{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
 .admin form{display:inline-flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
@@ -99,7 +99,6 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
     <input class="field name" id="gbName" maxlength="20" autocomplete="nickname" placeholder="이름 (별명도 좋아요)" required>
     <label class="sr" for="gbText">남길 글</label>
     <textarea class="field" id="gbText" maxlength="500" placeholder="남기고 싶은 말을 적어 주세요" required></textarea>
-    <div class="hp" aria-hidden="true"><label>웹사이트<input id="gbSite" tabindex="-1" autocomplete="off"></label></div>
     <div class="foot">
       <span class="count" id="gbCount">0 / 500</span>
       <button class="btn" id="gbSend" type="submit">남기기</button>
@@ -111,8 +110,9 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
   <div class="list-head"><h2>남겨진 글</h2><span id="gbTotal"></span></div>
   <ul class="list" id="gbList" aria-live="polite"><li class="empty">불러오는 중…</li></ul>
 
-  <div class="admin" id="admin">
-    <button class="link" type="button" id="adminOpen">관리자</button>
+  <!-- 주인 전용: 주소 끝에 #admin 을 붙여 들어오거나, 이미 관리자 모드일 때만 보여요 -->
+  <div class="admin" id="admin" hidden>
+    <button class="link" type="button" id="adminOpen">관리자 모드 끄기</button>
     <form id="adminForm" hidden>
       <label class="sr" for="adminPw">관리자 비밀번호</label>
       <input id="adminPw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
@@ -141,9 +141,16 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
   }
   function setAdmin(pw){
     adminPw=pw; try{pw?sessionStorage.setItem("ml_admin",pw):sessionStorage.removeItem("ml_admin")}catch(e){}
-    $("#adminOpen").textContent=pw?"관리자 나가기":"관리자";
-    $("#adminForm").hidden=true; render();
+    syncAdmin(); render();
   }
+  // 관리자 영역: 관리자 모드면 '관리자 모드 끄기'만, 주소에 #admin 이 있으면 비밀번호 칸만 보여요. 그 외(방문자)엔 숨김
+  function syncAdmin(){
+    var wantLogin=location.hash==="#admin";
+    $("#admin").hidden=!(adminPw||wantLogin);
+    $("#adminOpen").hidden=!adminPw;
+    $("#adminForm").hidden=!!adminPw||!wantLogin;
+  }
+  window.addEventListener("hashchange",function(){syncAdmin();if(!$("#adminForm").hidden)$("#adminPw").focus()});
 
   // ── 목록 그리기 (모든 글은 textContent로만 넣어서, 글 속 코드는 그냥 글자로 보여요) ──
   function render(){
@@ -192,12 +199,13 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
     if(!name){msg.textContent="이름을 적어 주세요.";msg.classList.add("err");$("#gbName").focus();return}
     if(!text){msg.textContent="남길 글을 적어 주세요.";msg.classList.add("err");$("#gbText").focus();return}
     var btn=$("#gbSend"); btn.disabled=true; msg.textContent="남기는 중…";
-    post({action:"write",name:name,text:text,website:$("#gbSite").value,openedFor:Date.now()-openedAt}).then(function(d){
+    post({action:"write",name:name,text:text,openedFor:Date.now()-openedAt}).then(function(d){
       btn.disabled=false;
-      if(d.error){msg.textContent=d.error;msg.classList.add("err");return}
+      // 실제로 저장된 글(item)을 돌려받았을 때만 성공으로 보여줘요
+      if(d.error||!d.item){msg.textContent=d.error||"글을 남기지 못했어요. 잠시 후 다시 시도해 주세요.";msg.classList.add("err");return}
       try{localStorage.setItem("gb_name",name)}catch(e){}
       $("#gbText").value=""; count(); msg.textContent="글을 남겼어요. 고맙습니다!";
-      if(d.item){items.unshift(d.item);render()}
+      items=items.filter(function(y){return y.id!==d.item.id}); items.unshift(d.item); render();
     }).catch(function(){btn.disabled=false;msg.textContent="보내지 못했어요. 인터넷 연결을 확인해 주세요.";msg.classList.add("err")});
   });
 
@@ -231,18 +239,20 @@ h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;
     });
   }
   $("#adminOpen").addEventListener("click",function(){
-    if(adminPw){setAdmin(null);$("#adminMsg").textContent="관리자 모드에서 나왔어요.";return}
-    var f=$("#adminForm"); f.hidden=!f.hidden; if(!f.hidden)$("#adminPw").focus();
+    // 주소의 #admin 도 지워서, 끈 뒤에는 방문자 화면과 똑같이 보여요
+    if(location.hash==="#admin")history.replaceState(null,"",location.pathname+location.search);
+    setAdmin(null);
   });
   $("#adminForm").addEventListener("submit",function(e){
     e.preventDefault(); var pw=$("#adminPw").value, m=$("#adminMsg");
     if(!pw){m.textContent="비밀번호를 넣어 주세요.";return}
     post({action:"login",pw:pw}).then(function(d){
       if(d.ok){$("#adminPw").value="";setAdmin(pw);m.textContent="관리자 모드예요. 글마다 답글 달기·지우기 버튼이 보여요."}
+      else if(d._status===401||d._status===429){m.textContent=d.error;}
       else m.textContent=d.error||"확인하지 못했어요.";
     });
   });
-  if(adminPw)$("#adminOpen").textContent="관리자 나가기";
+  syncAdmin();
   load();
 })();
 </script>
