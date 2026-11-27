@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>방명록 | 태영, 태완</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="menu.css">
+<style>
+:root{
+  --bg:#F7F2EC; --paper:#FFFBF6; --ink:#2B211C; --muted:#7A6A60; --line:#E4D9CE; --accent:#8A5A3C; --chip:#EFE5DA; --err:#B8372B;
+  color-scheme:light; box-sizing:border-box; padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#1A1512;--paper:#221C18;--ink:#F1E9E1;--muted:#B3A398;--line:#3A302A;--accent:#E0B48F;--chip:#2C241F;--err:#F08C74;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#1A1512;--paper:#221C18;--ink:#F1E9E1;--muted:#B3A398;--line:#3A302A;--accent:#E0B48F;--chip:#2C241F;--err:#F08C74;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 "Noto Sans KR",system-ui,sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.wrap{max-width:720px;margin:0 auto;padding:48px 20px 96px}
+.eyebrow{font-size:13px;letter-spacing:.24em;color:var(--muted);margin:0 0 10px}
+h1{font:700 clamp(30px,5vw,40px)/1.3 "Gowun Batang",serif;letter-spacing:-.02em;margin:0 0 8px}
+.intro{color:var(--muted);margin:0 0 28px}
+
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px}
+.write .field{display:block;width:100%;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:12px 14px;font-size:16px}
+.write textarea.field{min-height:120px;resize:vertical;line-height:1.6;margin-top:10px}
+.write .field:focus{outline:none;border-color:var(--accent)}
+.write .name{max-width:240px}
+.write .foot{display:flex;align-items:center;gap:12px;margin-top:12px}
+.write .count{font-size:13px;color:var(--muted);margin-right:auto}
+.write .count.over{color:var(--err)}
+.btn{border:0;border-radius:999px;background:var(--accent);color:var(--paper);font-weight:700;padding:10px 22px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);font-weight:500;padding:6px 14px;font-size:14px}
+.msg{min-height:1.5em;margin:8px 2px 0;font-size:14px;color:var(--muted)}
+.msg.err{color:var(--err)}
+.note{margin:4px 2px 0;font-size:13px;color:var(--muted)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.list-head{display:flex;align-items:baseline;gap:10px;margin:40px 2px 14px}
+.list-head h2{font:700 20px/1.4 "Gowun Batang",serif;margin:0}
+.list-head span{font-size:14px;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.entry{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.entry .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.entry .who{font-weight:700}
+.entry time{font-size:13px;color:var(--muted)}
+.entry .text{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.reply{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--chip);border-left:3px solid var(--accent)}
+.reply .top b{color:var(--accent);font-size:14px}
+.reply .text{margin-top:4px;font-size:15px}
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tools .del{color:var(--err)}
+.reply-form{margin-top:12px}
+.reply-form textarea{display:block;width:100%;min-height:80px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:10px 12px;resize:vertical;line-height:1.6}
+.reply-form .tools{margin-top:8px}
+.empty{text-align:center;color:var(--muted);padding:32px 0}
+
+.admin{margin-top:48px;text-align:center;font-size:14px;color:var(--muted)}
+.admin button.link{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+.admin form{display:inline-flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.admin input{border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:8px 14px;width:200px}
+@media (max-width:600px){
+  .wrap{padding:32px 16px 72px}
+  .card{padding:16px}
+  .entry{padding:16px}
+  .write .name{max-width:none}
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="sh-in">
+    <a class="sh-logo" href="index.html">태영, 태완<small>TAEYOUNG · TAEWAN</small></a>
+    <button class="sh-burger" type="button" aria-expanded="false" aria-controls="sh-nav" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+    <nav id="sh-nav" class="sh-nav" aria-label="메뉴">
+      <a href="index.html">소개</a>
+      <a href="schedule.html">일정표</a>
+      <a href="budget.html">가계부</a>
+      <a href="media.html">미디어 라이브러리</a>
+      <a href="guestbook.html" aria-current="page">방명록</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="eyebrow">GUESTBOOK</p>
+  <h1>방명록</h1>
+  <p class="intro">들러 주셔서 고맙습니다. 짧은 인사 한 줄 남겨 주시면 큰 힘이 돼요.</p>
+
+  <form class="card write" id="write" novalidate>
+    <label class="sr" for="gbName">이름</label>
+    <input class="field name" id="gbName" maxlength="20" autocomplete="nickname" placeholder="이름 (별명도 좋아요)" required>
+    <label class="sr" for="gbText">남길 글</label>
+    <textarea class="field" id="gbText" maxlength="500" placeholder="남기고 싶은 말을 적어 주세요" required></textarea>
+    <div class="hp" aria-hidden="true"><label>웹사이트<input id="gbSite" tabindex="-1" autocomplete="off"></label></div>
+    <div class="foot">
+      <span class="count" id="gbCount">0 / 500</span>
+      <button class="btn" id="gbSend" type="submit">남기기</button>
+    </div>
+    <p class="msg" id="gbMsg" role="status"></p>
+    <p class="note">남긴 글은 누구나 볼 수 있어요. 전화번호나 주소 같은 개인정보는 적지 말아 주세요.</p>
+  </form>
+
+  <div class="list-head"><h2>남겨진 글</h2><span id="gbTotal"></span></div>
+  <ul class="list" id="gbList" aria-live="polite"><li class="empty">불러오는 중…</li></ul>
+
+  <div class="admin" id="admin">
+    <button class="link" type="button" id="adminOpen">관리자</button>
+    <form id="adminForm" hidden>
+      <label class="sr" for="adminPw">관리자 비밀번호</label>
+      <input id="adminPw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
+      <button class="btn ghost" type="submit">확인</button>
+    </form>
+    <p class="msg" id="adminMsg" role="status"></p>
+  </div>
+</main>
+
+<script src="menu.js"></script>
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var MAX=500, openedAt=Date.now();
+  var adminPw=null; try{adminPw=sessionStorage.getItem("ml_admin")}catch(e){}
+  var items=[];
+
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function when(t){
+    var d=new Date(t);
+    return new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}).format(d);
+  }
+  function post(data){
+    return fetch("/api/guestbook",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)})
+      .then(function(r){return r.json().catch(function(){return{}}).then(function(d){d._status=r.status;return d})});
+  }
+  function setAdmin(pw){
+    adminPw=pw; try{pw?sessionStorage.setItem("ml_admin",pw):sessionStorage.removeItem("ml_admin")}catch(e){}
+    $("#adminOpen").textContent=pw?"관리자 나가기":"관리자";
+    $("#adminForm").hidden=true; render();
+  }
+
+  // ── 목록 그리기 (모든 글은 textContent로만 넣어서, 글 속 코드는 그냥 글자로 보여요) ──
+  function render(){
+    var ul=$("#gbList"); ul.innerHTML="";
+    $("#gbTotal").textContent=items.length?items.length+"개":"";
+    if(!items.length){ul.appendChild(el("li","empty","아직 남겨진 글이 없어요. 첫 글을 남겨 주세요!"));return}
+    items.forEach(function(x){
+      var li=el("li","entry");
+      var top=el("div","top"); top.appendChild(el("span","who",x.name));
+      var t=el("time",null,when(x.time)); t.dateTime=new Date(x.time).toISOString(); top.appendChild(t);
+      li.appendChild(top); li.appendChild(el("p","text",x.text));
+      if(x.reply){
+        var r=el("div","reply"); var rt=el("div","top"); rt.appendChild(el("b",null,"↳ 주인 답글"));
+        var rtime=el("time",null,when(x.reply.time)); rtime.dateTime=new Date(x.reply.time).toISOString(); rt.appendChild(rtime);
+        r.appendChild(rt); r.appendChild(el("p","text",x.reply.text)); li.appendChild(r);
+      }
+      if(adminPw){
+        var tools=el("div","tools");
+        var rb=el("button","btn ghost",x.reply?"답글 고치기":"답글 달기"); rb.type="button";
+        var db=el("button","btn ghost del","글 지우기"); db.type="button";
+        rb.onclick=function(){openReply(li,x)}; db.onclick=function(){remove(x)};
+        tools.appendChild(rb); tools.appendChild(db); li.appendChild(tools);
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  function load(){
+    fetch("/api/guestbook",{cache:"no-store"}).then(function(r){return r.json()}).then(function(d){
+      if(d&&d.enabled===false){$("#gbList").innerHTML="";$("#gbList").appendChild(el("li","empty","방명록이 아직 준비 중이에요."));$("#write").hidden=true;return}
+      items=(d&&d.items)||[]; render();
+    }).catch(function(){$("#gbList").innerHTML="";$("#gbList").appendChild(el("li","empty","방명록을 불러오지 못했어요. 잠시 후 새로고침해 주세요."))});
+  }
+
+  // ── 글쓰기 ──
+  function count(){
+    var n=[...$("#gbText").value].length, c=$("#gbCount");
+    c.textContent=n+" / "+MAX; c.classList.toggle("over",n>MAX);
+  }
+  $("#gbText").addEventListener("input",count);
+  try{var saved=localStorage.getItem("gb_name");if(saved)$("#gbName").value=saved}catch(e){}
+  $("#write").addEventListener("submit",function(e){
+    e.preventDefault();
+    var name=$("#gbName").value.trim(), text=$("#gbText").value.trim(), msg=$("#gbMsg");
+    msg.className="msg";
+    if(!name){msg.textContent="이름을 적어 주세요.";msg.classList.add("err");$("#gbName").focus();return}
+    if(!text){msg.textContent="남길 글을 적어 주세요.";msg.classList.add("err");$("#gbText").focus();return}
+    var btn=$("#gbSend"); btn.disabled=true; msg.textContent="남기는 중…";
+    post({action:"write",name:name,text:text,website:$("#gbSite").value,openedFor:Date.now()-openedAt}).then(function(d){
+      btn.disabled=false;
+      if(d.error){msg.textContent=d.error;msg.classList.add("err");return}
+      try{localStorage.setItem("gb_name",name)}catch(e){}
+      $("#gbText").value=""; count(); msg.textContent="글을 남겼어요. 고맙습니다!";
+      if(d.item){items.unshift(d.item);render()}
+    }).catch(function(){btn.disabled=false;msg.textContent="보내지 못했어요. 인터넷 연결을 확인해 주세요.";msg.classList.add("err")});
+  });
+
+  // ── 관리자: 답글, 지우기 ──
+  function openReply(li,x){
+    var old=li.querySelector(".reply-form"); if(old){old.remove();return}
+    var f=el("form","reply-form");
+    var ta=el("textarea"); ta.maxLength=500; ta.value=x.reply?x.reply.text:""; ta.placeholder="답글을 적어 주세요 (비우고 저장하면 답글이 지워져요)";
+    ta.setAttribute("aria-label",x.name+"님 글에 답글");
+    var tools=el("div","tools"); var ok=el("button","btn","저장"); ok.type="submit";
+    var no=el("button","btn ghost","취소"); no.type="button"; no.onclick=function(){f.remove()};
+    var m=el("p","msg"); m.setAttribute("role","status");
+    tools.appendChild(ok); tools.appendChild(no); f.appendChild(ta); f.appendChild(tools); f.appendChild(m);
+    f.onsubmit=function(e){
+      e.preventDefault(); ok.disabled=true; m.textContent="저장하는 중…";
+      post({action:"reply",pw:adminPw,id:x.id,text:ta.value}).then(function(d){
+        ok.disabled=false;
+        if(d._status===401){setAdmin(null);$("#adminMsg").textContent="관리자 비밀번호가 바뀌었어요. 다시 확인해 주세요.";return}
+        if(d.error){m.textContent=d.error;m.className="msg err";return}
+        items=items.map(function(y){return y.id===x.id?d.item:y}); render();
+      });
+    };
+    li.appendChild(f); ta.focus();
+  }
+  function remove(x){
+    if(!confirm(x.name+"님의 글을 지울까요? 지우면 되돌릴 수 없어요."))return;
+    post({action:"delete",pw:adminPw,id:x.id}).then(function(d){
+      if(d._status===401){setAdmin(null);$("#adminMsg").textContent="관리자 비밀번호가 바뀌었어요. 다시 확인해 주세요.";return}
+      if(d.error){alert(d.error);return}
+      items=items.filter(function(y){return y.id!==x.id}); render();
+    });
+  }
+  $("#adminOpen").addEventListener("click",function(){
+    if(adminPw){setAdmin(null);$("#adminMsg").textContent="관리자 모드에서 나왔어요.";return}
+    var f=$("#adminForm"); f.hidden=!f.hidden; if(!f.hidden)$("#adminPw").focus();
+  });
+  $("#adminForm").addEventListener("submit",function(e){
+    e.preventDefault(); var pw=$("#adminPw").value, m=$("#adminMsg");
+    if(!pw){m.textContent="비밀번호를 넣어 주세요.";return}
+    post({action:"login",pw:pw}).then(function(d){
+      if(d.ok){$("#adminPw").value="";setAdmin(pw);m.textContent="관리자 모드예요. 글마다 답글 달기·지우기 버튼이 보여요."}
+      else m.textContent=d.error||"확인하지 못했어요.";
+    });
+  });
+  if(adminPw)$("#adminOpen").textContent="관리자 나가기";
+  load();
+})();
+</script>
+</body>
+</html>
